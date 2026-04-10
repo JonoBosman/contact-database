@@ -8,39 +8,32 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;min-height:100vh;color:#1e293b;overflow-x:hidden}
 
-/* ── TOAST ── */
+/* TOAST */
 #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:#1e293b;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;pointer-events:all;animation:slideIn .25s ease;min-width:220px}
-.toast.ok{border-left:4px solid #10b981}
-.toast.err{border-left:4px solid #ef4444}
-.toast.info{border-left:4px solid #6366f1}
+.toast.ok{border-left:4px solid #10b981}.toast.err{border-left:4px solid #ef4444}.toast.info{border-left:4px solid #6366f1}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+@keyframes slideOut{from{opacity:1}to{transform:translateX(120%);opacity:0}}
 
-/* ── SETUP BANNER ── */
+/* SETUP BANNER */
 #setup-banner{background:#fef9c3;border-bottom:2px solid #fde68a;padding:12px 24px;font-size:13px;color:#78350f;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#setup-banner strong{font-size:14px}
 #setup-banner input{flex:1;min-width:240px;padding:6px 10px;border:1px solid #fcd34d;border-radius:6px;font-size:13px}
 
-/* ── TOPNAV ── */
+/* TOPNAV */
 .topnav{background:#1e293b;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100}
 .topnav-left{display:flex;align-items:center;gap:16px}
-.logo{color:#fff;font-size:18px;font-weight:700;letter-spacing:.5px;flex-shrink:0}
-.logo span{color:#6366f1}
+.logo{color:#fff;font-size:18px;font-weight:700;letter-spacing:.5px;flex-shrink:0}.logo span{color:#6366f1}
 .db-selector{position:relative}
 .db-selector-btn{display:flex;align-items:center;gap:8px;background:#334155;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;min-width:220px;justify-content:space-between;transition:background .15s}
-.db-selector-btn:hover{background:#475569}
-.db-selector-btn.master-active{background:#7c3aed}
+.db-selector-btn:hover{background:#475569}.db-selector-btn.master-active{background:#7c3aed}
 .db-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .db-count-pill{background:rgba(255,255,255,.15);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px}
 .db-dropdown{position:absolute;top:48px;left:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:200;min-width:300px;overflow:hidden;display:none}
 .db-dropdown.open{display:block}
-.db-dropdown-header{padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;border-bottom:1px solid #f1f5f9;text-transform:uppercase;letter-spacing:.5px}
+.db-dd-header{padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;border-bottom:1px solid #f1f5f9;text-transform:uppercase;letter-spacing:.5px}
 .db-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .15s}
-.db-item:hover{background:#f8fafc}
-.db-item.active{background:#eef2ff}
-.db-item.master-item{background:#faf5ff}
-.db-item.master-item:hover,.db-item.master-item.active{background:#ede9fe}
+.db-item:hover{background:#f8fafc}.db-item.active{background:#eef2ff}
+.db-item.master-item{background:#faf5ff}.db-item.master-item:hover,.db-item.master-item.active{background:#ede9fe}
 .db-item-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
 .db-item-info{flex:1;min-width:0}
 .db-item-name{font-size:13px;font-weight:600;color:#1e293b}
@@ -50,42 +43,48 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;min-height:1
 .dd-divider{border:none;border-top:1px solid #f1f5f9}
 .dd-action{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;color:#6366f1;font-size:13px;font-weight:600}
 .dd-action:hover{background:#f8fafc}
-.topnav-right{display:flex;align-items:center;gap:8px}
 
-/* ── BREADCRUMB ── */
+/* HAMBURGER */
+.topnav-right{display:flex;align-items:center;gap:8px;position:relative}
+.hamburger-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font-size:18px;cursor:pointer;transition:background .15s;line-height:1}
+.hamburger-btn:hover{background:rgba(255,255,255,.2)}
+.hamburger-menu{position:absolute;right:0;top:44px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;min-width:210px;overflow:hidden;display:none}
+.hamburger-menu.open{display:block}
+.hamburger-menu-header{padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;border-bottom:1px solid #f1f5f9;text-transform:uppercase;letter-spacing:.5px}
+.hamburger-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#1e293b;transition:background .15s}
+.hamburger-item:hover{background:#f8fafc}
+.hamburger-item.danger{color:#ef4444;border-top:1px solid #f1f5f9}
+.hamburger-item.danger:hover{background:#fee2e2}
+
+/* BREADCRUMB */
 .breadcrumb{background:#fff;padding:8px 24px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px}
 .breadcrumb strong{color:#1e293b;font-weight:600}
-.breadcrumb-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.bc-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 
-/* ── TOOLBAR ── */
+/* MASTER BANNER */
+.master-banner{background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;padding:10px 24px;font-size:13px;display:flex;align-items:center;gap:10px}
+.master-banner strong{font-size:14px}.master-banner span{opacity:.8;font-size:12px}
+
+/* TOOLBAR */
 .toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 24px;background:#fff;border-bottom:1px solid #e2e8f0}
 .toolbar-left{display:flex;align-items:center;gap:10px}
-.db-title-icon{font-size:20px}
-.db-title{font-size:16px;font-weight:700;color:#1e293b}
-.master-title{color:#7c3aed}
+.db-title{font-size:16px;font-weight:700;color:#1e293b}.master-title{color:#7c3aed}
 .record-count{font-size:12px;color:#64748b;background:#f1f5f9;padding:3px 10px;border-radius:10px}
-.last-saved{font-size:11px;color:#94a3b8;margin-left:6px}
+.last-saved{font-size:11px;color:#94a3b8}
 .toolbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .search-wrap{position:relative}
 .search-wrap input{padding:7px 12px 7px 32px;border-radius:7px;border:1px solid #e2e8f0;font-size:13px;width:200px;outline:none;transition:border-color .2s}
 .search-wrap input:focus{border-color:#6366f1}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none}
 .btn{border:none;border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
-.btn:hover{opacity:.88;transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn-primary{background:#6366f1;color:#fff}
-.btn-green{background:#10b981;color:#fff}
-.btn-blue{background:#0ea5e9;color:#fff}
-.btn-amber{background:#f59e0b;color:#fff}
-.btn-ghost{background:#f1f5f9;color:#475569}
+.btn:hover{opacity:.88;transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn-primary{background:#6366f1;color:#fff}.btn-green{background:#10b981;color:#fff}
+.btn-blue{background:#0ea5e9;color:#fff}.btn-ghost{background:#f1f5f9;color:#475569}
 .btn-ghost:hover{background:#e2e8f0}
-.btn-red{color:#ef4444;background:#fee2e2}
-.btn-more{display:none}
-.file-lbl{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;background:#f59e0b;color:#fff;transition:all .15s;white-space:nowrap}
-.file-lbl:hover{opacity:.88;transform:translateY(-1px)}
-.file-lbl input{display:none}
+.file-lbl{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;background:#f59e0b;color:#fff;transition:all .15s}
+.file-lbl:hover{opacity:.88;transform:translateY(-1px)}.file-lbl input{display:none}
 
-/* ── FILTER BAR ── */
+/* FILTER BAR */
 .filter-bar{padding:8px 24px;background:#fff;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:40px}
 .filter-bar.hidden{display:none}
 .filter-chip{display:inline-flex;align-items:center;gap:5px;background:#eef2ff;color:#4338ca;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #c7d2fe}
@@ -95,15 +94,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;min-height:1
 .filter-popup{position:absolute;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:14px;z-index:150;min-width:260px;margin-top:4px}
 .filter-popup label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:4px;text-transform:uppercase}
 .filter-popup select,.filter-popup input{width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;outline:none;margin-bottom:10px}
-.filter-popup select:focus,.filter-popup input:focus{border-color:#6366f1}
 .filter-bar-wrap{position:relative}
 
-/* ── MASTER BANNER ── */
-.master-banner{background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;padding:10px 24px;font-size:13px;display:flex;align-items:center;gap:10px}
-.master-banner strong{font-size:14px}
-.master-banner span{opacity:.8;font-size:12px}
-
-/* ── TABLE ── */
+/* TABLE */
 .table-wrap{overflow-x:auto;background:#fff}
 table{border-collapse:collapse;width:100%;font-size:13px}
 thead tr{background:#1e293b;color:#e2e8f0}
@@ -111,13 +104,13 @@ thead tr.master-head{background:#4c1d95}
 th{padding:10px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
 th:hover{background:#334155}
 th.master-col-head{background:#5b21b6;position:sticky;left:0;z-index:10}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s;position:relative}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s}
 tbody tr:hover{background:#f8fafc}
 tbody tr.editing-row{background:#eff6ff!important;outline:2px solid #6366f1;outline-offset:-2px}
 td{padding:0}
 td.master-col-td{position:sticky;left:0;background:#fff;z-index:5;border-right:1px solid #e2e8f0}
 tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background:inherit}
-.cell{padding:8px 14px;min-height:38px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;display:flex;align-items:center;gap:6px;position:relative}
+.cell{padding:8px 14px;min-height:38px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;display:flex;align-items:center;gap:6px}
 .cell:hover .edit-hint{opacity:1}
 .edit-hint{opacity:0;font-size:11px;color:#94a3b8;transition:opacity .15s;margin-left:auto;flex-shrink:0}
 .cell.empty .cell-text{color:#cbd5e1;font-style:italic;font-size:11px}
@@ -131,7 +124,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 .empty-title{font-size:16px;font-weight:700;color:#1e293b;margin-bottom:6px}
 .empty-desc{font-size:13px;color:#64748b;margin-bottom:20px}
 
-/* ── SIDE PANEL (Add Row) ── */
+/* SIDE PANEL */
 .panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:400;display:none;justify-content:flex-end}
 .panel-overlay.open{display:flex}
 .side-panel{background:#fff;width:420px;max-width:100%;height:100%;display:flex;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,.15);animation:panelIn .25s ease}
@@ -146,14 +139,13 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 .panel-field label{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
 .panel-field input,.panel-field select,.panel-field textarea{width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;transition:border-color .2s}
 .panel-field input:focus,.panel-field select:focus,.panel-field textarea:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.panel-field textarea{resize:vertical;min-height:80px}
 .panel-field-desc{font-size:11px;color:#94a3b8;margin-top:3px}
 .panel-db-select{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .panel-db-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all .15s}
-.panel-db-opt:hover,.panel-db-opt.selected{border-color:#6366f1;background:#eef2ff}
-.panel-section-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid #f1f5f9}
+.panel-db-opt:hover{border-color:#6366f1;background:#eef2ff}
+.panel-section-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid #f1f5f9}
 
-/* ── MODALS ── */
+/* MODALS */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:14px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
@@ -173,36 +165,28 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 .schema-field{display:flex;align-items:flex-start;gap:8px;padding:10px;background:#f8fafc;border-radius:8px;margin-bottom:8px;border:1px solid #e2e8f0;flex-wrap:wrap}
 .schema-field-main{display:flex;gap:8px;flex:1;min-width:0;flex-wrap:wrap}
 .schema-field input,.schema-field select{padding:6px 9px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;min-width:0}
-.schema-field .field-name{flex:2;min-width:100px}
-.schema-field .field-type{flex:1;min-width:90px}
-.schema-field .field-opts{flex:3;min-width:120px}
+.schema-field .field-name{flex:2;min-width:100px}.schema-field .field-type{flex:1;min-width:90px}.schema-field .field-opts{flex:3;min-width:120px}
 .remove-field{background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:4px;flex-shrink:0;margin-top:2px}
 .shared-tag{font-size:10px;background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:4px;font-weight:700}
 .field-type-desc{font-size:10px;color:#94a3b8;margin-top:2px;width:100%}
-.schema-preview{margin-top:8px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#475569}
+.schema-preview{margin-top:10px;padding:8px 12px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#475569}
 .schema-preview strong{color:#1e293b}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9}
+.visibility-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:6px;border:1px solid #e2e8f0}
+.visibility-row-left{display:flex;align-items:center;gap:8px}
 
-/* ── FOOTER ── */
+/* FOOTER */
 .app-footer{padding:8px 24px;background:#fff;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:center}
 
-/* ── MOBILE ── */
+/* MOBILE */
 @media(max-width:700px){
-  .topnav{padding:0 12px}
-  .logo{font-size:15px}
+  .topnav{padding:0 12px}.logo{font-size:15px}
   .db-selector-btn{min-width:160px;font-size:12px}
   .toolbar{padding:10px 12px}
-  .btn-hide-mobile{display:none}
-  .btn-more{display:inline-flex}
-  .toolbar-right .file-lbl{display:none}
-  .search-wrap input{width:140px}
-  .breadcrumb{padding:6px 12px}
-  .filter-bar{padding:6px 12px}
+  .search-wrap input{width:130px}
+  .breadcrumb,.filter-bar{padding:6px 12px}
   .side-panel{width:100%}
-  .more-menu{position:absolute;right:12px;top:56px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:150;min-width:180px;overflow:hidden;display:none}
-  .more-menu.open{display:block}
-  .more-menu-item{padding:10px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#1e293b;font-weight:500}
-  .more-menu-item:hover{background:#f8fafc}
+  .btn-hide-mobile{display:none}
 }
 </style>
 </head>
@@ -232,7 +216,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
         <span>▾</span>
       </button>
       <div class="db-dropdown" id="db-dropdown">
-        <div class="db-dropdown-header">Your Databases</div>
+        <div class="db-dd-header">Your Databases</div>
         <div class="db-item master-item" id="master-nav-item" onclick="selectMasterView()">
           <div class="db-item-icon" style="background:#ede9fe">🌐</div>
           <div class="db-item-info">
@@ -248,23 +232,21 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
       </div>
     </div>
   </div>
+  <!-- HAMBURGER -->
   <div class="topnav-right">
-    <button class="btn btn-ghost" id="schema-btn" onclick="openSchemaModal()" style="font-size:12px">📐 Edit Columns</button>
-    <button class="btn btn-red" id="delete-btn" onclick="confirmDeleteDb()" style="font-size:12px">🗑 Delete DB</button>
-    <!-- Mobile more menu -->
-    <button class="btn btn-ghost btn-more" onclick="toggleMoreMenu()">⋯</button>
-    <div class="more-menu" id="more-menu">
-      <div class="more-menu-item" onclick="openSchemaModal();closeMoreMenu()">📐 Edit Columns</div>
-      <div class="more-menu-item" onclick="exportCSV();closeMoreMenu()">⬇ Export CSV</div>
+    <button class="hamburger-btn" onclick="toggleHamburger()">☰</button>
+    <div class="hamburger-menu" id="hamburger-menu">
+      <div class="hamburger-menu-header">Actions</div>
+      <div class="hamburger-item" onclick="openSchemaModal();closeHamburger()">📐 Edit Data Schema</div>
+      <div class="hamburger-item danger" id="delete-db-item" onclick="confirmDeleteDb();closeHamburger()">🗑 Delete Database</div>
     </div>
   </div>
 </nav>
 
 <!-- BREADCRUMB -->
-<div class="breadcrumb" id="breadcrumb">
-  <span>DataHub</span>
-  <span>›</span>
-  <span class="breadcrumb-dot" id="bc-dot"></span>
+<div class="breadcrumb">
+  <span>DataHub</span><span>›</span>
+  <span class="bc-dot" id="bc-dot"></span>
   <strong id="bc-name">—</strong>
 </div>
 
@@ -277,7 +259,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 <!-- TOOLBAR -->
 <div class="toolbar">
   <div class="toolbar-left">
-    <span id="toolbar-db-icon" class="db-title-icon"></span>
+    <span id="toolbar-db-icon" style="font-size:20px"></span>
     <span class="db-title" id="toolbar-title">Select a database</span>
     <span class="record-count" id="record-count">—</span>
     <span class="last-saved" id="last-saved"></span>
@@ -289,10 +271,10 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
     </div>
     <button class="btn btn-green" onclick="handleAddRow()">＋ Add Row</button>
     <button class="btn btn-blue btn-hide-mobile" onclick="exportCSV()">⬇ Export</button>
-    <label class="file-lbl btn-hide-mobile">⬆ Import <input type="file" id="csv-import" accept=".csv" onchange="importCSV(event)"/></label>
-
+    <label class="file-lbl btn-hide-mobile">⬆ Import<input type="file" id="csv-import" accept=".csv" onchange="importCSV(event)"/></label>
+    <button class="btn btn-ghost btn-hide-mobile" onclick="isMasterView?loadMasterView():loadFromSheet()">🔄 Refresh</button>
     <div class="filter-bar-wrap">
-      <button class="btn btn-ghost" id="filter-toggle-btn" onclick="toggleFilterPanel()">⚗ Filter</button>
+      <button class="btn btn-ghost" onclick="toggleFilterPanel()">⚗ Filter</button>
     </div>
   </div>
 </div>
@@ -303,10 +285,9 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   <div id="filter-chips"></div>
   <button class="filter-add" onclick="openFilterPopup()">＋ Add Filter</button>
   <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;margin-left:auto" onclick="clearFilters()">Clear All</button>
-  <!-- Filter popup -->
   <div class="filter-popup" id="filter-popup" style="display:none">
     <label>Column</label>
-    <select id="filter-col-select" onchange="updateFilterValueInput()"></select>
+    <select id="filter-col-select"></select>
     <label>Value</label>
     <input type="text" id="filter-val-input" placeholder="Type a value…"/>
     <div style="display:flex;gap:8px">
@@ -317,10 +298,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 </div>
 
 <div class="table-wrap">
-  <table id="main-table">
-    <thead id="thead"></thead>
-    <tbody id="tbody"></tbody>
-  </table>
+  <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
 </div>
 
 <div class="app-footer">
@@ -328,7 +306,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   <span id="footer-saved"></span>
 </div>
 
-<!-- SIDE PANEL (Add Row) -->
+<!-- SIDE PANEL -->
 <div class="panel-overlay" id="add-panel">
   <div class="side-panel">
     <div class="panel-header">
@@ -347,7 +325,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 <div class="modal-overlay" id="new-db-modal">
   <div class="modal">
     <h3>➕ Create New Database</h3>
-    <p class="modal-sub">Set up a new database. You can customise columns after creation via "Edit Columns".</p>
+    <p class="modal-sub">Set up a new database. Customise columns after creation via Edit Data Schema.</p>
     <div class="form-row"><label>Database Name *</label><input type="text" id="new-db-name" placeholder="e.g. EU Parliament Database"/></div>
     <div class="form-row"><label>Description</label><textarea id="new-db-desc" placeholder="What is this database for?"></textarea></div>
     <div class="form-row"><label>Choose Icon</label><div class="icon-grid" id="icon-grid"></div></div>
@@ -362,32 +340,25 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 <!-- SCHEMA MODAL -->
 <div class="modal-overlay" id="schema-modal">
   <div class="modal">
-    <h3>📐 Edit Columns</h3>
+    <h3 id="schema-modal-title">📐 Edit Data Schema</h3>
     <p class="modal-sub" id="schema-modal-sub"></p>
-    <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Shared Base Columns (on every database)</div>
-    <div id="shared-cols-display"></div>
-    <div style="margin:16px 0 8px;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px">Custom Columns for this Database</div>
-    <div id="schema-fields"></div>
-    <button class="btn btn-ghost" style="width:100%;margin-top:8px;justify-content:center" onclick="addSchemaField()">＋ Add Column</button>
-    <div class="schema-preview" id="schema-preview" style="display:none">
-      <strong>Preview:</strong> <span id="schema-preview-text"></span>
-    </div>
+    <div id="schema-modal-body"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('schema-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSchema()">Save Columns</button>
+      <button class="btn btn-primary" id="schema-save-btn">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── CONSTANTS ────────────────────────────────────────────────────────────────
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const SHARED_COLS=[{key:"name",label:"First Name",type:"text"},{key:"surname",label:"Last Name",type:"text"},{key:"email",label:"Email",type:"text"},{key:"organisation",label:"Organisation",type:"text"}];
 const ICONS=["📋","👥","🏛️","💼","🌍","📊","🔬","🤝","📁","⭐","🏢","📌","🎯","💡","🔗"];
 const COLORS=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316","#84cc16"];
 const FIELD_TYPES=["text","number","date","dropdown","checkbox"];
 const FIELD_DESCS={text:"Free text input",number:"Numeric values only",date:"Date picker",dropdown:"Pick from a list of options",checkbox:"Yes / No toggle"};
 
-// ── STATE ────────────────────────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────────────────
 let databases=JSON.parse(localStorage.getItem("dh_databases")||"null")||[
   {id:"ddi",name:"DDI Database",desc:"DDI contact records",icon:"📋",color:"#6366f1",schema:[{key:"source_db",label:"Source Database",type:"dropdown",options:"CRM,LinkedIn,HubSpot,Salesforce,Other"},{key:"job_title",label:"Job Title",type:"text"},{key:"country",label:"Country",type:"text"},{key:"tags",label:"Tags",type:"text"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
   {id:"openup",name:"OpenUp General",desc:"OpenUp general contacts",icon:"👥",color:"#10b981",schema:[{key:"job_title",label:"Job Title",type:"text"},{key:"phone",label:"Phone",type:"text"},{key:"country",label:"Country",type:"text"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
@@ -397,6 +368,7 @@ let databases=JSON.parse(localStorage.getItem("dh_databases")||"null")||[
 let currentDbId=null;
 let isMasterView=true;
 let masterRows=[];
+let masterHiddenCols=JSON.parse(localStorage.getItem("dh_master_hidden")||"[]");
 let editCell=null;
 let savingCell=null;
 let sortConfig={key:null,dir:"asc"};
@@ -404,21 +376,17 @@ let scriptUrl=localStorage.getItem("dh_script_url")||"";
 let selectedIcon=ICONS[0],selectedColor=COLORS[0];
 let tempSchemaFields=[];
 let activeFilters=[];
-let panelMode=null; // 'add' or 'pick'
 let panelTargetDbId=null;
-let filterPopupOpen=false;
-let masterHiddenCols=JSON.parse(localStorage.getItem("dh_master_hidden")||"[]");
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────────────
 window.onload=()=>{
   if(scriptUrl) document.getElementById("setup-banner").style.display="none";
   buildIconGrid(); buildColorGrid();
   renderDbList(); selectMasterView();
   document.addEventListener("click",e=>{
     if(!e.target.closest(".db-selector")) document.getElementById("db-dropdown").classList.remove("open");
+    if(!e.target.closest(".topnav-right")) document.getElementById("hamburger-menu").classList.remove("open");
     if(!e.target.closest(".filter-bar-wrap")&&!e.target.closest("#filter-popup")) document.getElementById("filter-popup").style.display="none";
-    if(!e.target.closest("#hamburger-wrap")) closeHamburger();
-    if(!e.target.closest(".topnav-right")) document.getElementById("more-menu").classList.remove("open");
   });
 };
 
@@ -426,95 +394,67 @@ function saveState(){ localStorage.setItem("dh_databases",JSON.stringify(databas
 function getDb(id=currentDbId){ return databases.find(d=>d.id===id); }
 function allCols(db){ return [...SHARED_COLS,...(db.schema||[])]; }
 
-// ── TOAST ────────────────────────────────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────────────────────────────
 function toast(msg,type="ok"){
   const c=document.getElementById("toast-container");
   const t=document.createElement("div"); t.className=`toast ${type}`;
-  const icons={ok:"✅",err:"❌",info:"ℹ️"};
-  t.innerHTML=`<span>${icons[type]||""}</span><span>${msg}</span>`;
+  t.innerHTML=`<span>${{ok:"✅",err:"❌",info:"ℹ️"}[type]||""}</span><span>${msg}</span>`;
   c.appendChild(t);
   setTimeout(()=>{ t.style.animation="slideOut .25s ease forwards"; setTimeout(()=>t.remove(),250); },3000);
-  // Update last saved
-  if(type==="ok"){
-    const now=new Date(); const ts=now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-    document.getElementById("last-saved").textContent="Last saved "+ts;
-    document.getElementById("footer-saved").textContent="Last saved: "+ts;
-  }
+  if(type==="ok"){ const ts=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}); document.getElementById("last-saved").textContent="Saved "+ts; document.getElementById("footer-saved").textContent="Last saved: "+ts; }
 }
 
-// ── SETUP ────────────────────────────────────────────────────────────────────
+// ── SETUP ─────────────────────────────────────────────────────────────────────
 function saveScriptUrl(){
   const v=document.getElementById("script-url-input").value.trim();
-  if(!v.startsWith("https://script.google.com")){ toast("Invalid URL — please check and try again.","err"); return; }
+  if(!v.startsWith("https://script.google.com")){ toast("Invalid URL.","err"); return; }
   scriptUrl=v; localStorage.setItem("dh_script_url",scriptUrl);
   document.getElementById("setup-banner").style.display="none";
-  toast("Connected! Loading data…","info");
-  isMasterView?loadMasterView():loadFromSheet();
+  toast("Connected!","info"); isMasterView?loadMasterView():loadFromSheet();
 }
 function dismissBanner(){ document.getElementById("setup-banner").style.display="none"; }
 
 // ── GOOGLE SHEETS ─────────────────────────────────────────────────────────────
 async function loadFromSheet(){
   if(!scriptUrl) return;
-  const db=getDb(); toast("Loading data…","info");
+  const db=getDb(); toast("Loading…","info");
   try{
     const res=await fetch(`${scriptUrl}?action=get&sheet=${encodeURIComponent(db.name)}`);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    db.rows=data.rows||[]; saveState(); renderTable(); renderDbList();
-    toast("Data loaded successfully.","ok");
-  }catch(e){ toast("Could not load: "+e.message,"err"); }
+    const data=await res.json(); if(data.error) throw new Error(data.error);
+    db.rows=data.rows||[]; saveState(); renderTable(); renderDbList(); toast("Data loaded.","ok");
+  }catch(e){ toast("Load failed: "+e.message,"err"); }
 }
-
 async function loadMasterView(){
   if(!scriptUrl){ buildMasterFromLocal(); return; }
   toast("Loading master data…","info");
   try{
     const res=await fetch(`${scriptUrl}?action=get&sheet=Master%20List`);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    masterRows=data.rows||[]; renderMasterTable(); updateMasterCount();
-    toast("Master data loaded.","ok");
-  }catch(e){ buildMasterFromLocal(); toast("Using local data for master view.","info"); }
+    const data=await res.json(); if(data.error) throw new Error(data.error);
+    masterRows=data.rows||[]; renderMasterTable(); updateMasterCount(); toast("Master data loaded.","ok");
+  }catch(e){ buildMasterFromLocal(); toast("Using local data.","info"); }
 }
-
 function buildMasterFromLocal(){
   masterRows=[];
   databases.forEach(db=>{ (db.rows||[]).forEach(row=>{ masterRows.push({...row,_database:db.name,_dbId:db.id}); }); });
   updateMasterCount(); renderMasterTable();
 }
-
 async function saveRowToSheet(row,idx,dbName){
   if(!scriptUrl) return;
-  try{
-    await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"upsert",sheet:dbName,row,rowIdx:idx})});
-  }catch(e){ toast("Save failed: "+e.message,"err"); }
+  try{ await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"upsert",sheet:dbName,row,rowIdx:idx})}); }
+  catch(e){ toast("Save failed: "+e.message,"err"); }
 }
-
 async function deleteRowFromSheet(idx,dbName){
   if(!scriptUrl) return;
-  try{
-    await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"delete",sheet:dbName,rowIdx:idx})});
-  }catch(e){ toast("Delete failed: "+e.message,"err"); }
+  try{ await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"delete",sheet:dbName,rowIdx:idx})}); }
+  catch(e){ toast("Delete failed: "+e.message,"err"); }
 }
+
+// ── HAMBURGER ─────────────────────────────────────────────────────────────────
+function toggleHamburger(){ document.getElementById("hamburger-menu").classList.toggle("open"); }
+function closeHamburger(){ document.getElementById("hamburger-menu").classList.remove("open"); }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function toggleDbDropdown(){ document.getElementById("db-dropdown").classList.toggle("open"); }
-function toggleHamburger(){
-  // Rebuild menu based on current view
-  const menu=document.getElementById("hamburger-menu");
-  const isOpen=menu.style.display==="block";
-  if(isOpen){ menu.style.display="none"; return; }
-  menu.innerHTML=`<div style="padding:10px 14px;font-size:11px;font-weight:700;color:#94a3b8;border-bottom:1px solid #f1f5f9;text-transform:uppercase;letter-spacing:.5px">Database Actions</div>
-    <div onclick="openSchemaModal();closeHamburger()" style="display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#1e293b;transition:background .15s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-      📐 Edit Data Schema
-    </div>
-    ${!isMasterView?`<div onclick="confirmDeleteDb();closeHamburger()" style="display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;color:#ef4444;border-top:1px solid #f1f5f9;transition:background .15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background=''">🗑 Delete Database</div>`:""}`;
-  menu.style.display="block";
-}
-function closeHamburger(){ document.getElementById("hamburger-menu").style.display="none"; }
-function toggleMoreMenu(){ document.getElementById("more-menu").classList.toggle("open"); }
-function closeMoreMenu(){ document.getElementById("more-menu").classList.remove("open"); }
 
 function renderDbList(){
   const el=document.getElementById("db-list"); el.innerHTML="";
@@ -535,30 +475,6 @@ function updateMasterCount(){
   document.getElementById("master-count").textContent=total;
 }
 
-function selectDb(id){
-  isMasterView=false; currentDbId=id; editCell=null; sortConfig={key:null,dir:"asc"}; activeFilters=[];
-  const db=getDb();
-  // Nav
-  document.getElementById("nav-dot").style.background=db.color;
-  document.getElementById("nav-label").textContent=db.icon+" "+db.name;
-  document.getElementById("nav-count").textContent=(db.rows||[]).length;
-  document.getElementById("db-selector-btn").className="db-selector-btn";
-  // Breadcrumb
-  document.getElementById("bc-dot").style.background=db.color;
-  document.getElementById("bc-name").textContent=db.name;
-  // Toolbar
-  document.getElementById("toolbar-db-icon").textContent=db.icon;
-  document.getElementById("toolbar-title").textContent=db.name;
-  document.getElementById("toolbar-title").className="db-title";
-  // UI toggles
-  document.getElementById("master-banner").style.display="none";
-  document.getElementById("schema-btn").style.display="";
-  document.getElementById("master-nav-item").className="db-item master-item";
-  document.getElementById("filter-bar").classList.add("hidden");  renderFilterChips();
-  renderDbList(); buildHeader(); renderTable();
-  if(scriptUrl) loadFromSheet();
-}
-
 function selectMasterView(){
   isMasterView=true; currentDbId=null; editCell=null; sortConfig={key:null,dir:"asc"}; activeFilters=[];
   document.getElementById("db-dropdown").classList.remove("open");
@@ -571,105 +487,76 @@ function selectMasterView(){
   document.getElementById("toolbar-db-icon").textContent="🌐";
   document.getElementById("toolbar-title").innerHTML='<span class="master-title">Master View</span>';
   document.getElementById("master-banner").style.display="flex";
-  document.getElementById("hamburger-menu-btn").style.display="none";
   document.getElementById("master-nav-item").className="db-item master-item active";
-  renderDbList();
+  // Hamburger: hide Delete DB in master view
+  document.getElementById("delete-db-item").style.display="none";
+  document.getElementById("filter-bar").classList.add("hidden");
+  renderFilterChips(); renderDbList();
   if(scriptUrl) loadMasterView(); else buildMasterFromLocal();
 }
 
+function selectDb(id){
+  isMasterView=false; currentDbId=id; editCell=null; sortConfig={key:null,dir:"asc"}; activeFilters=[];
+  const db=getDb();
+  document.getElementById("nav-dot").style.background=db.color;
+  document.getElementById("nav-label").textContent=db.icon+" "+db.name;
+  document.getElementById("nav-count").textContent=(db.rows||[]).length;
+  document.getElementById("db-selector-btn").className="db-selector-btn";
+  document.getElementById("bc-dot").style.background=db.color;
+  document.getElementById("bc-name").textContent=db.name;
+  document.getElementById("toolbar-db-icon").textContent=db.icon;
+  document.getElementById("toolbar-title").textContent=db.name;
+  document.getElementById("toolbar-title").className="db-title";
+  document.getElementById("master-banner").style.display="none";
+  document.getElementById("master-nav-item").className="db-item master-item";
+  // Hamburger: show Delete DB in sub-database view
+  document.getElementById("delete-db-item").style.display="";
+  document.getElementById("filter-bar").classList.add("hidden");
+  renderFilterChips(); renderDbList(); buildHeader(); renderTable();
+  if(scriptUrl) loadFromSheet();
+}
+
+// ── MASTER COLS ───────────────────────────────────────────────────────────────
+function getAllMasterCols(){
+  const map=new Map();
+  map.set("_database",{key:"_database",label:"Database",type:"text"});
+  SHARED_COLS.forEach(c=>map.set(c.key,c));
+  databases.forEach(db=>{ (db.schema||[]).forEach(c=>{ if(!map.has(c.key)) map.set(c.key,c); }); });
+  return Array.from(map.values());
+}
+function getMasterCols(){ return getAllMasterCols().filter(c=>!masterHiddenCols.includes(c.key)); }
+
 // ── FILTERS ───────────────────────────────────────────────────────────────────
-function toggleFilterPanel(){
-  const fb=document.getElementById("filter-bar");
-  fb.classList.toggle("hidden");
-  if(!fb.classList.contains("hidden")) populateFilterCols();
-}
-
-function populateFilterCols(){
-  const sel=document.getElementById("filter-col-select"); sel.innerHTML="";
-  const cols=isMasterView?getMasterCols():allCols(getDb());
-  cols.forEach(c=>{ const o=document.createElement("option"); o.value=c.key; o.textContent=c.label; sel.appendChild(o); });
-}
-
-function openFilterPopup(){
-  populateFilterCols();
-  const pp=document.getElementById("filter-popup");
-  pp.style.display=pp.style.display==="none"?"block":"none";
-}
-
-function updateFilterValueInput(){ document.getElementById("filter-val-input").value=""; }
-
-function applyFilter(){
-  const col=document.getElementById("filter-col-select").value;
-  const val=document.getElementById("filter-val-input").value.trim();
-  if(!val) return;
-  const cols=isMasterView?getMasterCols():allCols(getDb());
-  const colDef=cols.find(c=>c.key===col);
-  activeFilters.push({key:col,label:colDef?.label||col,val});
-  document.getElementById("filter-popup").style.display="none";
-  document.getElementById("filter-val-input").value="";
-  renderFilterChips(); renderTable();
-}
-
-function renderFilterChips(){
-  const el=document.getElementById("filter-chips"); el.innerHTML="";
-  activeFilters.forEach((f,i)=>{
-    const chip=document.createElement("div"); chip.className="filter-chip";
-    chip.innerHTML=`<span>${f.label} = <strong>${f.val}</strong></span><button onclick="removeFilter(${i})">✕</button>`;
-    el.appendChild(chip);
-  });
-}
-
+function toggleFilterPanel(){ document.getElementById("filter-bar").classList.toggle("hidden"); if(!document.getElementById("filter-bar").classList.contains("hidden")) populateFilterCols(); }
+function populateFilterCols(){ const sel=document.getElementById("filter-col-select"); sel.innerHTML=""; const cols=isMasterView?getMasterCols():allCols(getDb()); cols.forEach(c=>{ const o=document.createElement("option"); o.value=c.key; o.textContent=c.label; sel.appendChild(o); }); }
+function openFilterPopup(){ populateFilterCols(); const pp=document.getElementById("filter-popup"); pp.style.display=pp.style.display==="none"?"block":"none"; }
+function applyFilter(){ const col=document.getElementById("filter-col-select").value; const val=document.getElementById("filter-val-input").value.trim(); if(!val) return; const cols=isMasterView?getMasterCols():allCols(getDb()); const colDef=cols.find(c=>c.key===col); activeFilters.push({key:col,label:colDef?.label||col,val}); document.getElementById("filter-popup").style.display="none"; document.getElementById("filter-val-input").value=""; renderFilterChips(); renderTable(); }
+function renderFilterChips(){ const el=document.getElementById("filter-chips"); el.innerHTML=""; activeFilters.forEach((f,i)=>{ const chip=document.createElement("div"); chip.className="filter-chip"; chip.innerHTML=`<span>${f.label} = <strong>${f.val}</strong></span><button onclick="removeFilter(${i})">✕</button>`; el.appendChild(chip); }); }
 function removeFilter(i){ activeFilters.splice(i,1); renderFilterChips(); renderTable(); }
 function clearFilters(){ activeFilters=[]; renderFilterChips(); renderTable(); }
+function applyFiltersToRows(rows){ if(!activeFilters.length) return rows; return rows.filter(row=>activeFilters.every(f=>String(row[f.key]||"").toLowerCase().includes(f.val.toLowerCase()))); }
 
-function applyFiltersToRows(rows,cols){
-  if(!activeFilters.length) return rows;
-  return rows.filter(row=>activeFilters.every(f=>String(row[f.key]||"").toLowerCase().includes(f.val.toLowerCase())));
-}
-
-// ── MASTER VIEW ───────────────────────────────────────────────────────────────
-function getMasterCols(){
-  const allKeys=new Map();
-  allKeys.set("_database",{key:"_database",label:"Database",type:"text"});
-  SHARED_COLS.forEach(c=>allKeys.set(c.key,c));
-  databases.forEach(db=>{ (db.schema||[]).forEach(c=>{ if(!allKeys.has(c.key)) allKeys.set(c.key,c); }); });
-  return Array.from(allKeys.values()).filter(c=>!masterHiddenCols.includes(c.key));
-}
-
+// ── MASTER TABLE ──────────────────────────────────────────────────────────────
 function renderMasterTable(){
   const cols=getMasterCols();
   const search=(document.getElementById("search-input").value||"").toLowerCase();
   let filtered=masterRows.filter(row=>cols.some(c=>String(row[c.key]||"").toLowerCase().includes(search)));
-  filtered=applyFiltersToRows(filtered,cols);
+  filtered=applyFiltersToRows(filtered);
   if(sortConfig.key) filtered.sort((a,b)=>{ const av=a[sortConfig.key]||"",bv=b[sortConfig.key]||""; return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
   document.getElementById("record-count").textContent=filtered.length+" of "+masterRows.length+" records";
-
   const thead=document.getElementById("thead"); thead.innerHTML="";
   const htr=document.createElement("tr"); htr.className="master-head";
-  cols.forEach(c=>{
-    const th=document.createElement("th");
-    if(c.key==="_database") th.className="master-col-head";
-    const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅";
-    th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`;
-    th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; renderMasterTable(); };
-    htr.appendChild(th);
-  });
-  const ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath);
-  thead.appendChild(htr);
-
+  cols.forEach(c=>{ const th=document.createElement("th"); if(c.key==="_database") th.className="master-col-head"; const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅"; th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`; th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; renderMasterTable(); }; htr.appendChild(th); });
+  const ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath); thead.appendChild(htr);
   const tbody=document.getElementById("tbody"); tbody.innerHTML="";
   if(filtered.length===0){ renderEmptyState(tbody,cols.length+1,"🌐","No records found","Try adjusting your search or filters."); return; }
-
   filtered.forEach(row=>{
     const masterIdx=masterRows.indexOf(row);
     const dbObj=databases.find(d=>d.name===row._database);
     const isEditing=editCell&&editCell.masterIdx===masterIdx;
-    const tr=document.createElement("tr");
-    if(isEditing) tr.className="editing-row";
-
+    const tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
     cols.forEach(c=>{
-      const td=document.createElement("td");
-      if(c.key==="_database"){ td.className="master-col-td"; }
+      const td=document.createElement("td"); if(c.key==="_database") td.className="master-col-td";
       if(c.key==="_database"){
         const div=document.createElement("div"); div.className="cell";
         if(dbObj){ const span=document.createElement("span"); span.className="db-source-badge"; span.style.background=dbObj.color; span.textContent=dbObj.icon+" "+row._database; div.appendChild(span); }
@@ -677,42 +564,28 @@ function renderMasterTable(){
         td.appendChild(div);
       } else if(isEditing&&editCell.colKey===c.key){
         const colDef=dbObj?allCols(dbObj).find(x=>x.key===c.key):null;
-        renderEditInput(td,c,colDef,row,(v)=>commitMasterEdit(masterIdx,c.key,v,dbObj));
+        renderEditInput(td,c,colDef||c,row,v=>commitMasterEdit(masterIdx,c.key,v,dbObj));
       } else {
         renderDisplayCell(td,c,row,()=>{ editCell={masterIdx,colKey:c.key}; renderMasterTable(); });
       }
       tr.appendChild(td);
     });
-    appendDeleteBtn(tr,()=>{
-      if(!confirm("Delete this row?")) return;
-      if(dbObj){ const i=(dbObj.rows||[]).findIndex(r=>r.name===row.name&&r.email===row.email&&r.surname===row.surname); if(i>-1){ dbObj.rows.splice(i,1); saveState(); deleteRowFromSheet(i,dbObj.name); } }
-      masterRows.splice(masterIdx,1); renderMasterTable(); updateMasterCount();
-    });
+    appendDeleteBtn(tr,()=>{ if(!confirm("Delete this row?")) return; if(dbObj){ const i=(dbObj.rows||[]).findIndex(r=>r.name===row.name&&r.email===row.email&&r.surname===row.surname); if(i>-1){ dbObj.rows.splice(i,1); saveState(); deleteRowFromSheet(i,dbObj.name); } } masterRows.splice(masterIdx,1); renderMasterTable(); updateMasterCount(); });
     tbody.appendChild(tr);
   });
 }
 
 function commitMasterEdit(masterIdx,colKey,val,dbObj){
   masterRows[masterIdx][colKey]=val; editCell=null;
-  if(dbObj){
-    const src=dbObj.rows.find(r=>r.name===masterRows[masterIdx].name&&r.email===masterRows[masterIdx].email&&r.surname===masterRows[masterIdx].surname);
-    if(src){ src[colKey]=val; saveState(); const i=dbObj.rows.indexOf(src); saveRowToSheet(src,i,dbObj.name); }
-  }
-  toast("Saved to "+dbObj?.name,"ok"); renderMasterTable();
+  if(dbObj){ const src=dbObj.rows.find(r=>r.name===masterRows[masterIdx].name&&r.email===masterRows[masterIdx].email&&r.surname===masterRows[masterIdx].surname); if(src){ src[colKey]=val; saveState(); saveRowToSheet(src,dbObj.rows.indexOf(src),dbObj.name); } }
+  toast("Saved to "+(dbObj?.name||"database"),"ok"); renderMasterTable();
 }
 
-// ── TABLE (normal) ────────────────────────────────────────────────────────────
+// ── NORMAL TABLE ──────────────────────────────────────────────────────────────
 function buildHeader(){
   const db=getDb(); if(!db) return;
-  const cols=allCols(db);
-  const tr=document.createElement("tr");
-  cols.forEach(c=>{
-    const th=document.createElement("th");
-    const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅";
-    th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`;
-    th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; buildHeader(); renderTable(); };
-    tr.appendChild(th);
-  });
+  const cols=allCols(db); const tr=document.createElement("tr");
+  cols.forEach(c=>{ const th=document.createElement("th"); const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅"; th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`; th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; buildHeader(); renderTable(); }; tr.appendChild(th); });
   const th=document.createElement("th"); th.textContent="Actions"; tr.appendChild(th);
   const thead=document.getElementById("thead"); thead.innerHTML=""; thead.appendChild(tr);
 }
@@ -723,72 +596,40 @@ function renderTable(){
   const cols=allCols(db);
   const search=(document.getElementById("search-input").value||"").toLowerCase();
   let filtered=(db.rows||[]).filter(row=>cols.some(c=>String(row[c.key]||"").toLowerCase().includes(search)));
-  filtered=applyFiltersToRows(filtered,cols);
+  filtered=applyFiltersToRows(filtered);
   if(sortConfig.key) filtered.sort((a,b)=>{ const av=a[sortConfig.key]||"",bv=b[sortConfig.key]||""; return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
   document.getElementById("record-count").textContent=filtered.length+" of "+(db.rows||[]).length+" records";
   document.getElementById("nav-count").textContent=(db.rows||[]).length;
   const tbody=document.getElementById("tbody"); tbody.innerHTML="";
-  if(filtered.length===0){
-    renderEmptyState(tbody,cols.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click '＋ Add Row' to add your first record.":"No records match your search or filters.");
-    return;
-  }
+  if(filtered.length===0){ renderEmptyState(tbody,cols.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click '＋ Add Row' to add your first record.":"No records match your search or filters."); return; }
   filtered.forEach(row=>{
     const origIdx=(db.rows||[]).indexOf(row);
     const isEditing=editCell&&editCell.rowIdx===origIdx;
     const isSaving=savingCell===origIdx;
-    const tr=document.createElement("tr");
-    if(isEditing) tr.className="editing-row";
+    const tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
     cols.forEach(c=>{
       const td=document.createElement("td");
-      if(isEditing&&editCell.colKey===c.key){
-        renderEditInput(td,c,c,row,(v)=>commitEdit(origIdx,c.key,v));
-      } else {
-        renderDisplayCell(td,c,row,()=>{ editCell={rowIdx:origIdx,colKey:c.key}; renderTable(); },isSaving&&c===cols[0]);
-      }
+      if(isEditing&&editCell.colKey===c.key){ renderEditInput(td,c,c,row,v=>commitEdit(origIdx,c.key,v)); }
+      else { renderDisplayCell(td,c,row,()=>{ editCell={rowIdx:origIdx,colKey:c.key}; renderTable(); },isSaving&&c===cols[0]); }
       tr.appendChild(td);
     });
-    appendDeleteBtn(tr,()=>{
-      if(!confirm("Delete this row?")) return;
-      db.rows.splice(origIdx,1); saveState(); deleteRowFromSheet(origIdx,db.name);
-      renderTable(); renderDbList(); toast("Row deleted.","ok");
-    });
+    appendDeleteBtn(tr,()=>{ if(!confirm("Delete this row?")) return; db.rows.splice(origIdx,1); saveState(); deleteRowFromSheet(origIdx,db.name); renderTable(); renderDbList(); toast("Row deleted.","ok"); });
     tbody.appendChild(tr);
   });
 }
 
 function renderEditInput(td,c,colDef,row,onCommit){
   const type=colDef?.type||c.type;
-  if(type==="dropdown"){
-    const sel=document.createElement("select"); sel.className="cell";
-    const opts=((colDef?.options||c.options)||"").split(",").map(o=>o.trim());
-    sel.innerHTML=`<option value="">-- Select --</option>`+opts.map(o=>`<option${row[c.key]===o?" selected":""}>${o}</option>`).join("");
-    sel.onchange=()=>onCommit(sel.value); sel.onblur=()=>onCommit(sel.value);
-    td.appendChild(sel); setTimeout(()=>sel.focus(),0);
-  } else if(type==="checkbox"){
-    const inp=document.createElement("input"); inp.type="checkbox"; inp.className="cell";
-    inp.checked=row[c.key]==="true"||row[c.key]===true;
-    inp.onchange=()=>onCommit(String(inp.checked)); td.appendChild(inp); setTimeout(()=>inp.focus(),0);
-  } else {
-    const inp=document.createElement("input"); inp.className="cell";
-    inp.type=type==="date"?"date":type==="number"?"number":"text";
-    inp.value=row[c.key]||"";
-    inp.onblur=()=>onCommit(inp.value);
-    inp.onkeydown=e=>{ if(e.key==="Enter") onCommit(inp.value); if(e.key==="Escape"){ editCell=null; renderTable(); } };
-    td.appendChild(inp); setTimeout(()=>inp.focus(),0);
-  }
+  if(type==="dropdown"){ const sel=document.createElement("select"); sel.className="cell"; const opts=((colDef?.options||c.options)||"").split(",").map(o=>o.trim()); sel.innerHTML=`<option value="">-- Select --</option>`+opts.map(o=>`<option${row[c.key]===o?" selected":""}>${o}</option>`).join(""); sel.onchange=()=>onCommit(sel.value); sel.onblur=()=>onCommit(sel.value); td.appendChild(sel); setTimeout(()=>sel.focus(),0); }
+  else if(type==="checkbox"){ const inp=document.createElement("input"); inp.type="checkbox"; inp.className="cell"; inp.checked=row[c.key]==="true"||row[c.key]===true; inp.onchange=()=>onCommit(String(inp.checked)); td.appendChild(inp); setTimeout(()=>inp.focus(),0); }
+  else { const inp=document.createElement("input"); inp.className="cell"; inp.type=type==="date"?"date":type==="number"?"number":"text"; inp.value=row[c.key]||""; inp.onblur=()=>onCommit(inp.value); inp.onkeydown=e=>{ if(e.key==="Enter") onCommit(inp.value); if(e.key==="Escape"){ editCell=null; renderTable(); } }; td.appendChild(inp); setTimeout(()=>inp.focus(),0); }
 }
 
 function renderDisplayCell(td,c,row,onClick,showSpinner=false){
-  const div=document.createElement("div");
-  const val=row[c.key];
-  div.className="cell"+(val?"":" empty");
-  if(c.type==="dropdown"&&val){
-    const span=document.createElement("span"); span.className="badge"; span.style.background=strColor(val); span.textContent=val; div.appendChild(span);
-  } else if(c.type==="checkbox"){
-    const ct=document.createElement("span"); ct.style.fontSize="16px"; ct.textContent=val==="true"||val===true?"✅":"☐"; div.appendChild(ct);
-  } else {
-    const ct=document.createElement("span"); ct.className="cell-text"; ct.textContent=val||(c.type?"click to edit":""); div.appendChild(ct);
-  }
+  const div=document.createElement("div"); const val=row[c.key]; div.className="cell"+(val?"":" empty");
+  if(c.type==="dropdown"&&val){ const span=document.createElement("span"); span.className="badge"; span.style.background=strColor(val); span.textContent=val; div.appendChild(span); }
+  else if(c.type==="checkbox"){ const ct=document.createElement("span"); ct.style.fontSize="16px"; ct.textContent=val==="true"||val===true?"✅":"☐"; div.appendChild(ct); }
+  else { const ct=document.createElement("span"); ct.className="cell-text"; ct.textContent=val||"click to edit"; div.appendChild(ct); }
   if(showSpinner){ const s=document.createElement("div"); s.className="saving-spinner"; div.appendChild(s); }
   else { const hint=document.createElement("span"); hint.className="edit-hint"; hint.textContent="✏️"; div.appendChild(hint); }
   div.onclick=onClick; td.appendChild(div);
@@ -796,14 +637,13 @@ function renderDisplayCell(td,c,row,onClick,showSpinner=false){
 
 function appendDeleteBtn(tr,onClick){
   const td=document.createElement("td"); td.style.cssText="padding:6px 10px;text-align:center";
-  const btn=document.createElement("button"); btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.6;transition:opacity .15s";
-  btn.textContent="🗑"; btn.onmouseenter=()=>btn.style.opacity="1"; btn.onmouseleave=()=>btn.style.opacity=".6";
+  const btn=document.createElement("button"); btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.5;transition:opacity .15s";
+  btn.textContent="🗑"; btn.onmouseenter=()=>btn.style.opacity="1"; btn.onmouseleave=()=>btn.style.opacity=".5";
   btn.onclick=onClick; td.appendChild(btn); tr.appendChild(td);
 }
 
 function renderEmptyState(tbody,colspan,icon,title,desc){
-  const tr=document.createElement("tr"); const td=document.createElement("td");
-  td.colSpan=colspan; td.className="no-records";
+  const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=colspan; td.className="no-records";
   td.innerHTML=`<div class="empty-icon">${icon}</div><div class="empty-title">${title}</div><div class="empty-desc">${desc}</div><button class="btn btn-primary" onclick="handleAddRow()" style="margin:0 auto">＋ Add Row</button>`;
   tr.appendChild(td); tbody.appendChild(tr);
 }
@@ -814,20 +654,17 @@ function commitEdit(rowIdx,colKey,val){
   saveRowToSheet(db.rows[rowIdx],rowIdx,db.name).then(()=>{ savingCell=null; toast("Saved to "+db.name,"ok"); renderTable(); renderDbList(); });
 }
 
-// ── SIDE PANEL (Add Row) ──────────────────────────────────────────────────────
-function handleAddRow(){
-  if(isMasterView){ openPickDbPanel(); } else { openAddPanel(currentDbId); }
-}
+// ── SIDE PANEL ────────────────────────────────────────────────────────────────
+function handleAddRow(){ if(isMasterView) openPickDbPanel(); else openAddPanel(currentDbId); }
 
 function openPickDbPanel(){
   document.getElementById("panel-title").textContent="➕ Add Row — Choose Database";
   const body=document.getElementById("panel-body"); body.innerHTML="";
-  const title=document.createElement("div"); title.className="panel-section-title"; title.textContent="Which database should this row go into?"; body.appendChild(title);
+  const t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Which database should this row go into?"; body.appendChild(t);
   const list=document.createElement("div"); list.className="panel-db-select";
   databases.forEach(db=>{
     const div=document.createElement("div"); div.className="panel-db-opt";
-    div.innerHTML=`<div style="width:34px;height:34px;border-radius:9px;background:${db.color}20;display:flex;align-items:center;justify-content:center;font-size:17px">${db.icon}</div>
-      <div><div style="font-weight:600;font-size:13px">${db.name}</div><div style="font-size:11px;color:#94a3b8">${db.desc||""}</div></div>`;
+    div.innerHTML=`<div style="width:34px;height:34px;border-radius:9px;background:${db.color}20;display:flex;align-items:center;justify-content:center;font-size:17px">${db.icon}</div><div><div style="font-weight:600;font-size:13px">${db.name}</div><div style="font-size:11px;color:#94a3b8">${db.desc||""}</div></div>`;
     div.onclick=()=>{ closePanel(); openAddPanel(db.id); };
     list.appendChild(div);
   });
@@ -840,26 +677,16 @@ function openAddPanel(dbId){
   const db=databases.find(d=>d.id===dbId);
   document.getElementById("panel-title").textContent=`➕ Add Row to ${db.icon} ${db.name}`;
   const body=document.getElementById("panel-body"); body.innerHTML="";
-  const cols=allCols(db);
-  const title=document.createElement("div"); title.className="panel-section-title"; title.textContent="Fill in the details below"; body.appendChild(title);
-  cols.forEach(c=>{
+  const t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Fill in the details below"; body.appendChild(t);
+  allCols(db).forEach(c=>{
     const wrap=document.createElement("div"); wrap.className="panel-field";
     const lbl=document.createElement("label"); lbl.textContent=c.label; wrap.appendChild(lbl);
     let inp;
-    if(c.type==="dropdown"){
-      inp=document.createElement("select"); inp.id="pf_"+c.key;
-      const opts=(c.options||"").split(",").map(o=>o.trim());
-      inp.innerHTML=`<option value="">-- Select --</option>`+opts.map(o=>`<option>${o}</option>`).join("");
-    } else if(c.type==="checkbox"){
-      inp=document.createElement("select"); inp.id="pf_"+c.key;
-      inp.innerHTML=`<option value="">-- Select --</option><option value="true">✅ Yes</option><option value="false">☐ No</option>`;
-    } else if(c.type==="date"){
-      inp=document.createElement("input"); inp.type="date"; inp.id="pf_"+c.key;
-    } else if(c.type==="number"){
-      inp=document.createElement("input"); inp.type="number"; inp.id="pf_"+c.key;
-    } else {
-      inp=document.createElement("input"); inp.type="text"; inp.id="pf_"+c.key; inp.placeholder=`Enter ${c.label.toLowerCase()}…`;
-    }
+    if(c.type==="dropdown"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML=`<option value="">-- Select --</option>`+((c.options||"").split(",").map(o=>`<option>${o.trim()}</option>`).join("")); }
+    else if(c.type==="checkbox"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML=`<option value="">-- Select --</option><option value="true">✅ Yes</option><option value="false">☐ No</option>`; }
+    else if(c.type==="date"){ inp=document.createElement("input"); inp.type="date"; inp.id="pf_"+c.key; }
+    else if(c.type==="number"){ inp=document.createElement("input"); inp.type="number"; inp.id="pf_"+c.key; }
+    else { inp=document.createElement("input"); inp.type="text"; inp.id="pf_"+c.key; inp.placeholder=`Enter ${c.label.toLowerCase()}…`; }
     wrap.appendChild(inp);
     if(FIELD_DESCS[c.type]){ const desc=document.createElement("div"); desc.className="panel-field-desc"; desc.textContent=FIELD_DESCS[c.type]; wrap.appendChild(desc); }
     body.appendChild(wrap);
@@ -873,95 +700,79 @@ function submitPanel(){
   const db=databases.find(d=>d.id===panelTargetDbId); if(!db) return;
   const cols=allCols(db);
   const row=Object.fromEntries(cols.map(c=>{ const el=document.getElementById("pf_"+c.key); return [c.key,el?el.value:""]; }));
-  db.rows.push(row); saveState();
-  saveRowToSheet(row,db.rows.length-1,db.name);
+  db.rows.push(row); saveState(); saveRowToSheet(row,db.rows.length-1,db.name);
   if(isMasterView){ masterRows.push({...row,_database:db.name}); updateMasterCount(); renderMasterTable(); }
   else { renderTable(); renderDbList(); }
   closePanel(); toast("Row added to "+db.name,"ok");
 }
 
-// ── SCHEMA ────────────────────────────────────────────────────────────────────
+// ── SCHEMA MODAL ──────────────────────────────────────────────────────────────
 function openSchemaModal(){
   if(isMasterView){ openMasterSchemaModal(); return; }
   const db=getDb();
+  document.getElementById("schema-modal-title").textContent="📐 Edit Data Schema";
   document.getElementById("schema-modal-sub").textContent=`Customise the columns for: ${db.icon} ${db.name}`;
-  const sc=document.getElementById("shared-cols-display"); sc.innerHTML="";
-  SHARED_COLS.forEach(c=>{ sc.innerHTML+=`<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px"><span>${c.label}</span><span class="shared-tag">${c.type}</span></div>`; });
+  const body=document.getElementById("schema-modal-body"); body.innerHTML="";
+  // Shared cols
+  const sharedTitle=document.createElement("div"); sharedTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"; sharedTitle.textContent="Shared Base Columns (on every database)"; body.appendChild(sharedTitle);
+  const sharedWrap=document.createElement("div"); sharedWrap.id="shared-cols-display";
+  SHARED_COLS.forEach(c=>{ sharedWrap.innerHTML+=`<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px"><span>${c.label}</span><span class="shared-tag">${c.type}</span></div>`; });
+  body.appendChild(sharedWrap);
+  // Custom cols
+  const customTitle=document.createElement("div"); customTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px"; customTitle.textContent="Custom Columns for this Database"; body.appendChild(customTitle);
+  const fieldsWrap=document.createElement("div"); fieldsWrap.id="schema-fields-wrap"; body.appendChild(fieldsWrap);
+  const addBtn=document.createElement("button"); addBtn.className="btn btn-ghost"; addBtn.style.cssText="width:100%;margin-top:8px;justify-content:center"; addBtn.textContent="＋ Add Column"; addBtn.onclick=addSchemaField; body.appendChild(addBtn);
+  const preview=document.createElement("div"); preview.className="schema-preview"; preview.id="schema-preview-box"; preview.style.display="none"; preview.innerHTML=`<strong>Column order preview:</strong> <span id="schema-preview-text"></span>`; body.appendChild(preview);
   tempSchemaFields=JSON.parse(JSON.stringify(db.schema||[]));
   renderSchemaFields(); updateSchemaPreview();
+  document.getElementById("schema-save-btn").onclick=saveSchema;
   document.getElementById("schema-modal").classList.add("open");
 }
 
 function openMasterSchemaModal(){
-  // Build full column list from all sub-databases
-  const allCols=getMasterCols().filter(c=>c.key!=="_database");
-  const modal=document.getElementById("schema-modal");
-  document.getElementById("schema-modal-sub").textContent="Choose which columns are visible in the Master View. You can only show or hide columns that exist in your sub-databases.";
-  // Replace shared cols display with visibility toggles
-  const sc=document.getElementById("shared-cols-display"); sc.innerHTML="";
+  document.getElementById("schema-modal-title").textContent="📐 Master View — Column Visibility";
+  document.getElementById("schema-modal-sub").textContent="Choose which columns are visible in the Master View. You can only show or hide columns that exist in your sub-databases — not add new ones.";
+  const body=document.getElementById("schema-modal-body"); body.innerHTML="";
+  const allCols=getAllMasterCols();
   allCols.forEach(c=>{
     const isVisible=!masterHiddenCols.includes(c.key);
-    const row=document.createElement("div");
-    row.style.cssText="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:6px;border:1px solid #e2e8f0";
-    row.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:13px;font-weight:500;color:#1e293b">${c.label}</span>
-        <span class="shared-tag">${c.type}</span>
-      </div>
+    const row=document.createElement("div"); row.className="visibility-row";
+    row.innerHTML=`<div class="visibility-row-left"><span style="font-size:13px;font-weight:500;color:#1e293b">${c.label}</span><span class="shared-tag" style="margin-left:4px">${c.type}</span></div>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b">
-        <input type="checkbox" id="mcol_${c.key}" ${isVisible?"checked":""} style="width:16px;height:16px;cursor:pointer"/>
-        Show
+        <input type="checkbox" id="mcol_${c.key}" ${isVisible?"checked":""} style="width:16px;height:16px;cursor:pointer"/> Show
       </label>`;
-    sc.appendChild(row);
+    body.appendChild(row);
   });
-  // Hide custom schema section — not applicable for master
-  document.getElementById("schema-fields").innerHTML="";
-  document.getElementById("schema-fields").style.display="none";
-  document.querySelector("[onclick='addSchemaField()']").style.display="none";
-  document.getElementById("schema-preview").style.display="none";
-  // Swap save button action
-  const saveBtn=document.querySelector("#schema-modal .modal-footer .btn-primary");
-  saveBtn.onclick=saveMasterSchema;
-  modal.classList.add("open");
-}
-
-function saveMasterSchema(){
-  const allCols=getMasterCols().filter(c=>c.key!=="_database");
-  masterHiddenCols=allCols.filter(c=>{ const el=document.getElementById("mcol_"+c.key); return el&&!el.checked; }).map(c=>c.key);
-  localStorage.setItem("dh_master_hidden",JSON.stringify(masterHiddenCols));
-  closeModal("schema-modal");
-  // Restore schema modal to normal state for next use
-  document.getElementById("schema-fields").style.display="";
-  document.querySelector("[onclick='addSchemaField()']").style.display="";
-  document.querySelector("#schema-modal .modal-footer .btn-primary").onclick=saveSchema;
-  renderMasterTable();
-  toast("Master View columns updated.","ok");
+  document.getElementById("schema-save-btn").onclick=saveMasterSchema;
+  document.getElementById("schema-modal").classList.add("open");
 }
 
 function renderSchemaFields(){
-  const el=document.getElementById("schema-fields"); el.innerHTML="";
+  const wrap=document.getElementById("schema-fields-wrap"); if(!wrap) return; wrap.innerHTML="";
   tempSchemaFields.forEach((f,i)=>{
     const div=document.createElement("div"); div.className="schema-field";
     const main=document.createElement("div"); main.className="schema-field-main";
     main.innerHTML=`<input class="field-name" type="text" value="${f.label||""}" placeholder="Column name" onchange="tempSchemaFields[${i}].label=this.value;tempSchemaFields[${i}].key=this.value.toLowerCase().replace(/\\s+/g,'_');updateSchemaPreview()"/>
       <select class="field-type" onchange="tempSchemaFields[${i}].type=this.value;renderSchemaFields();updateSchemaPreview()">
-        ${FIELD_TYPES.map(t=>`<option value="${t}"${f.type===t?" selected":""}>${t}</option>`).join("")}
+        ${FIELD_TYPES.map(t=>`<option value="${t}"${f.type===t?" selected":""}>${t} — ${FIELD_DESCS[t]}</option>`).join("")}
       </select>
       ${f.type==="dropdown"?`<input class="field-opts" type="text" value="${f.options||""}" placeholder="opt1, opt2, opt3" onchange="tempSchemaFields[${i}].options=this.value" title="Comma separated options"/>`:""}
       <div class="field-type-desc">${FIELD_DESCS[f.type]||""}</div>`;
     const rmv=document.createElement("button"); rmv.className="remove-field"; rmv.textContent="✕"; rmv.onclick=()=>{ tempSchemaFields.splice(i,1); renderSchemaFields(); updateSchemaPreview(); };
-    div.appendChild(main); div.appendChild(rmv); el.appendChild(div);
+    div.appendChild(main); div.appendChild(rmv); wrap.appendChild(div);
   });
 }
 
+function addSchemaField(){ tempSchemaFields.push({key:"field_"+Date.now(),label:"New Column",type:"text",options:""}); renderSchemaFields(); updateSchemaPreview(); }
+
 function updateSchemaPreview(){
   const all=[...SHARED_COLS,...tempSchemaFields];
-  const prev=document.getElementById("schema-preview");
+  const box=document.getElementById("schema-preview-box");
   const txt=document.getElementById("schema-preview-text");
-  if(all.length>0){ prev.style.display="block"; txt.textContent=all.map(c=>c.label).join(" → "); }
-  else prev.style.display="none";
+  if(!box||!txt) return;
+  if(all.length>0){ box.style.display="block"; txt.textContent=all.map(c=>c.label).join(" → "); }
+  else box.style.display="none";
 }
-
-function addSchemaField(){ tempSchemaFields.push({key:"field_"+Date.now(),label:"New Column",type:"text",options:""}); renderSchemaFields(); updateSchemaPreview(); }
 
 function saveSchema(){
   const db=getDb();
@@ -971,20 +782,19 @@ function saveSchema(){
   closeModal("schema-modal"); toast("Columns saved for "+db.name,"ok");
 }
 
-// ── NEW DATABASE ──────────────────────────────────────────────────────────────
-function buildIconGrid(){
-  const el=document.getElementById("icon-grid"); el.innerHTML="";
-  ICONS.forEach(ic=>{ const d=document.createElement("div"); d.className="icon-opt"+(ic===selectedIcon?" selected":""); d.textContent=ic; d.onclick=()=>{ selectedIcon=ic; buildIconGrid(); }; el.appendChild(d); });
+function saveMasterSchema(){
+  const allC=getAllMasterCols();
+  masterHiddenCols=allC.filter(c=>{ const el=document.getElementById("mcol_"+c.key); return el&&!el.checked; }).map(c=>c.key);
+  localStorage.setItem("dh_master_hidden",JSON.stringify(masterHiddenCols));
+  closeModal("schema-modal"); renderMasterTable(); toast("Master View columns updated.","ok");
 }
-function buildColorGrid(){
-  const el=document.getElementById("color-grid"); el.innerHTML="";
-  COLORS.forEach(c=>{ const d=document.createElement("div"); d.className="color-opt"+(c===selectedColor?" selected":""); d.style.background=c; d.onclick=()=>{ selectedColor=c; buildColorGrid(); }; el.appendChild(d); });
-}
-function openNewDbModal(){ document.getElementById("db-dropdown").classList.remove("open"); document.getElementById("new-db-modal").classList.add("open"); }
 
+// ── NEW DATABASE ──────────────────────────────────────────────────────────────
+function buildIconGrid(){ const el=document.getElementById("icon-grid"); el.innerHTML=""; ICONS.forEach(ic=>{ const d=document.createElement("div"); d.className="icon-opt"+(ic===selectedIcon?" selected":""); d.textContent=ic; d.onclick=()=>{ selectedIcon=ic; buildIconGrid(); }; el.appendChild(d); }); }
+function buildColorGrid(){ const el=document.getElementById("color-grid"); el.innerHTML=""; COLORS.forEach(c=>{ const d=document.createElement("div"); d.className="color-opt"+(c===selectedColor?" selected":""); d.style.background=c; d.onclick=()=>{ selectedColor=c; buildColorGrid(); }; el.appendChild(d); }); }
+function openNewDbModal(){ document.getElementById("db-dropdown").classList.remove("open"); document.getElementById("new-db-modal").classList.add("open"); }
 function createDatabase(){
-  const name=document.getElementById("new-db-name").value.trim();
-  const desc=document.getElementById("new-db-desc").value.trim();
+  const name=document.getElementById("new-db-name").value.trim(); const desc=document.getElementById("new-db-desc").value.trim();
   if(!name){ toast("Please enter a database name.","err"); return; }
   const id="db_"+Date.now();
   databases.push({id,name,desc,icon:selectedIcon,color:selectedColor,schema:[{key:"notes",label:"Notes",type:"text"}],rows:[]});
@@ -992,12 +802,11 @@ function createDatabase(){
   document.getElementById("new-db-name").value=""; document.getElementById("new-db-desc").value="";
   selectDb(id); toast(`"${name}" created!`,"ok");
 }
-
 function confirmDeleteDb(){
   const db=getDb(); if(!db) return;
   if(!confirm(`Delete "${db.name}"? This cannot be undone.`)) return;
   databases=databases.filter(d=>d.id!==currentDbId); saveState();
-  if(databases.length>0) selectDb(databases[0].id);
+  if(databases.length>0) selectDb(databases[0].id); else selectMasterView();
   renderDbList(); toast("Database deleted.","ok");
 }
 
@@ -1007,11 +816,8 @@ function exportCSV(){
   const data=isMasterView?masterRows:(getDb().rows||[]);
   const lines=[cols.map(c=>`"${c.label}"`).join(","),...data.map(row=>cols.map(c=>`"${String(row[c.key]||"").replace(/"/g,'""')}"`).join(","))];
   const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=isMasterView?"master-list.csv":`${getDb().name}.csv`; a.click();
-  toast("CSV exported.","ok");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=isMasterView?"master-list.csv":`${getDb().name}.csv`; a.click(); toast("CSV exported.","ok");
 }
-
 function importCSV(e){
   if(isMasterView){ toast("Please select a specific database to import into.","err"); e.target.value=""; return; }
   const file=e.target.files[0]; if(!file) return;
