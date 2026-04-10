@@ -250,13 +250,12 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   </div>
   <div class="topnav-right">
     <button class="btn btn-ghost" id="schema-btn" onclick="openSchemaModal()" style="font-size:12px">📐 Edit Columns</button>
+    <button class="btn btn-red" id="delete-btn" onclick="confirmDeleteDb()" style="font-size:12px">🗑 Delete DB</button>
     <!-- Mobile more menu -->
     <button class="btn btn-ghost btn-more" onclick="toggleMoreMenu()">⋯</button>
     <div class="more-menu" id="more-menu">
       <div class="more-menu-item" onclick="openSchemaModal();closeMoreMenu()">📐 Edit Columns</div>
       <div class="more-menu-item" onclick="exportCSV();closeMoreMenu()">⬇ Export CSV</div>
-      <div class="more-menu-item" onclick="document.getElementById('csv-import').click();closeMoreMenu()">⬆ Import CSV</div>
-      <div class="more-menu-item" style="color:#ef4444" onclick="confirmDeleteDb();closeMoreMenu()">🗑 Delete DB</div>
     </div>
   </div>
 </nav>
@@ -417,6 +416,7 @@ window.onload=()=>{
   document.addEventListener("click",e=>{
     if(!e.target.closest(".db-selector")) document.getElementById("db-dropdown").classList.remove("open");
     if(!e.target.closest(".filter-bar-wrap")&&!e.target.closest("#filter-popup")) document.getElementById("filter-popup").style.display="none";
+    if(!e.target.closest("#hamburger-wrap")) closeHamburger();
     if(!e.target.closest(".topnav-right")) document.getElementById("more-menu").classList.remove("open");
   });
 };
@@ -499,6 +499,8 @@ async function deleteRowFromSheet(idx,dbName){
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function toggleDbDropdown(){ document.getElementById("db-dropdown").classList.toggle("open"); }
+function toggleHamburger(){ const m=document.getElementById("hamburger-menu"); m.style.display=m.style.display==="none"?"block":"none"; }
+function closeHamburger(){ document.getElementById("hamburger-menu").style.display="none"; }
 function toggleMoreMenu(){ document.getElementById("more-menu").classList.toggle("open"); }
 function closeMoreMenu(){ document.getElementById("more-menu").classList.remove("open"); }
 
@@ -540,8 +542,7 @@ function selectDb(id){
   document.getElementById("master-banner").style.display="none";
   document.getElementById("schema-btn").style.display="";
   document.getElementById("master-nav-item").className="db-item master-item";
-  document.getElementById("filter-bar").classList.add("hidden");
-  renderFilterChips();
+  document.getElementById("filter-bar").classList.add("hidden");  renderFilterChips();
   renderDbList(); buildHeader(); renderTable();
   if(scriptUrl) loadFromSheet();
 }
@@ -558,7 +559,7 @@ function selectMasterView(){
   document.getElementById("toolbar-db-icon").textContent="🌐";
   document.getElementById("toolbar-title").innerHTML='<span class="master-title">Master View</span>';
   document.getElementById("master-banner").style.display="flex";
-  document.getElementById("schema-btn").style.display="none";
+  document.getElementById("hamburger-menu-btn").style.display="none";
   document.getElementById("master-nav-item").className="db-item master-item active";
   renderDbList();
   if(scriptUrl) loadMasterView(); else buildMasterFromLocal();
