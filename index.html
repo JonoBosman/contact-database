@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -251,7 +250,6 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   </div>
   <div class="topnav-right">
     <button class="btn btn-ghost" id="schema-btn" onclick="openSchemaModal()" style="font-size:12px">📐 Edit Columns</button>
-    <button class="btn btn-red" id="delete-btn" onclick="confirmDeleteDb()" style="font-size:12px">🗑 Delete DB</button>
     <!-- Mobile more menu -->
     <button class="btn btn-ghost btn-more" onclick="toggleMoreMenu()">⋯</button>
     <div class="more-menu" id="more-menu">
@@ -541,7 +539,6 @@ function selectDb(id){
   // UI toggles
   document.getElementById("master-banner").style.display="none";
   document.getElementById("schema-btn").style.display="";
-  document.getElementById("delete-btn").style.display="";
   document.getElementById("master-nav-item").className="db-item master-item";
   document.getElementById("filter-bar").classList.add("hidden");
   renderFilterChips();
@@ -562,7 +559,6 @@ function selectMasterView(){
   document.getElementById("toolbar-title").innerHTML='<span class="master-title">Master View</span>';
   document.getElementById("master-banner").style.display="flex";
   document.getElementById("schema-btn").style.display="none";
-  document.getElementById("delete-btn").style.display="none";
   document.getElementById("master-nav-item").className="db-item master-item active";
   renderDbList();
   if(scriptUrl) loadMasterView(); else buildMasterFromLocal();
