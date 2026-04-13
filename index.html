@@ -175,14 +175,12 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 
 <div id="toast-container"></div>
 
-<!-- LOADING SCREEN -->
 <div id="loading-screen">
   <div class="logo">Data<span>Hub</span></div>
-  <p>Loading your databases…</p>
+  <p id="loading-msg">Loading your databases…</p>
   <div class="loading-bar"><div class="loading-bar-inner"></div></div>
 </div>
 
-<!-- SETUP BANNER -->
 <div id="setup-banner">
   <strong>⚙️ Connect to Google Sheets:</strong>
   <input type="text" id="script-url-input" placeholder="Paste your Google Apps Script Web App URL here…"/>
@@ -190,7 +188,6 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   <button class="btn btn-ghost" onclick="dismissBanner()">Use Offline</button>
 </div>
 
-<!-- TOP NAV -->
 <nav class="topnav">
   <div class="topnav-left">
     <div class="logo">Data<span>Hub</span></div>
@@ -256,7 +253,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
     <button class="btn btn-green" onclick="handleAddRow()">＋ Add Row</button>
     <button class="btn btn-blue btn-hide-mobile" onclick="exportCSV()">⬇ Export</button>
     <label class="file-lbl btn-hide-mobile">⬆ Import<input type="file" id="csv-import" accept=".csv" onchange="importCSV(event)"/></label>
-    <button class="btn btn-ghost btn-hide-mobile" onclick="isMasterView?loadMasterView():loadFromSheet()">🔄 Refresh</button>
+    <button class="btn btn-ghost btn-hide-mobile" onclick="refreshCurrentView()">🔄 Refresh</button>
     <div class="filter-bar-wrap">
       <button class="btn btn-ghost" onclick="toggleFilterPanel()">⚗ Filter</button>
     </div>
@@ -289,7 +286,6 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   <span id="footer-saved"></span>
 </div>
 
-<!-- SIDE PANEL -->
 <div class="panel-overlay" id="add-panel">
   <div class="side-panel">
     <div class="panel-header">
@@ -304,7 +300,6 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   </div>
 </div>
 
-<!-- NEW DB MODAL -->
 <div class="modal-overlay" id="new-db-modal">
   <div class="modal">
     <h3>➕ Create New Database</h3>
@@ -320,7 +315,6 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
   </div>
 </div>
 
-<!-- SCHEMA MODAL -->
 <div class="modal-overlay" id="schema-modal">
   <div class="modal">
     <h3 id="schema-modal-title">📐 Edit Data Schema</h3>
@@ -334,6 +328,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 </div>
 
 <script>
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const SHARED_COLS=[{key:"name",label:"First Name",type:"text"},{key:"surname",label:"Last Name",type:"text"},{key:"email",label:"Email",type:"text"},{key:"organisation",label:"Organisation",type:"text"}];
 const ICONS=["📋","👥","🏛️","💼","🌍","📊","🔬","🤝","📁","⭐","🏢","📌","🎯","💡","🔗"];
 const COLORS=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316","#84cc16"];
@@ -341,144 +336,199 @@ const FIELD_TYPES=["text","number","date","dropdown","checkbox"];
 const FIELD_DESCS={text:"Free text input",number:"Numeric values only",date:"Date picker",dropdown:"Pick from a list of options",checkbox:"Yes / No toggle"};
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let databases=[];
-let currentDbId=null;
-let isMasterView=true;
-let masterRows=[];
-let masterHiddenCols=JSON.parse(localStorage.getItem("dh_master_hidden")||"[]");
-let editCell=null;
-let savingCell=null;
-let sortConfig={key:null,dir:"asc"};
-let scriptUrl="";
-let selectedIcon=ICONS[0],selectedColor=COLORS[0];
-let tempSchemaFields=[];
-let activeFilters=[];
-let panelTargetDbId=null;
+var databases=[];
+var currentDbId=null;
+var isMasterView=true;
+var masterRows=[];
+var masterHiddenCols=JSON.parse(localStorage.getItem("dh_master_hidden")||"[]");
+var editCell=null;
+var savingCell=null;
+var sortConfig={key:null,dir:"asc"};
+var scriptUrl="";
+var selectedIcon=ICONS[0],selectedColor=COLORS[0];
+var tempSchemaFields=[];
+var activeFilters=[];
+var panelTargetDbId=null;
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-window.onload=async()=>{
-  document.addEventListener("click",e=>{
+window.onload = function() {
+  document.addEventListener("click", function(e){
     if(!e.target.closest(".db-selector")) document.getElementById("db-dropdown").classList.remove("open");
     if(!e.target.closest(".topnav-right")) document.getElementById("hamburger-menu").classList.remove("open");
     if(!e.target.closest(".filter-bar-wrap")&&!e.target.closest("#filter-popup")) document.getElementById("filter-popup").style.display="none";
   });
-  buildIconGrid(); buildColorGrid();
-  // Re-read scriptUrl fresh from localStorage at load time
+  buildIconGrid();
+  buildColorGrid();
   scriptUrl = localStorage.getItem("dh_script_url") || "";
   if(scriptUrl){
-    // URL exists — hide banner and load config
     document.getElementById("setup-banner").style.display="none";
-    await loadConfig();
+    loadConfig();
   } else {
-    // No URL — keep banner visible, show empty app
     hideLoadingScreen();
-    databases=[];
-    renderDbList(); selectMasterView();
   }
 };
 
-function hideLoadingScreen(){ document.getElementById("loading-screen").style.display="none"; }
+function hideLoadingScreen(){
+  document.getElementById("loading-screen").style.display="none";
+}
 
-function getDefaultDatabases(){
-  return [
-    {id:"ddi",name:"DDI Database",desc:"DDI contact records",icon:"📋",color:"#6366f1",schema:[{key:"source_db",label:"Source Database",type:"dropdown",options:"CRM,LinkedIn,HubSpot,Salesforce,Other"},{key:"job_title",label:"Job Title",type:"text"},{key:"country",label:"Country",type:"text"},{key:"tags",label:"Tags",type:"text"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
-    {id:"openup",name:"OpenUp General",desc:"OpenUp general contacts",icon:"👥",color:"#10b981",schema:[{key:"job_title",label:"Job Title",type:"text"},{key:"phone",label:"Phone",type:"text"},{key:"country",label:"Country",type:"text"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
-    {id:"eu",name:"EU Parliament Database",desc:"EU Parliament contacts",icon:"🏛️",color:"#0ea5e9",schema:[{key:"country",label:"Country",type:"text"},{key:"party",label:"Political Party",type:"text"},{key:"committee",label:"Committee",type:"text"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
-    {id:"biz",name:"Business Development",desc:"Business development leads",icon:"💼",color:"#f59e0b",schema:[{key:"job_title",label:"Job Title",type:"text"},{key:"phone",label:"Phone",type:"text"},{key:"lead_status",label:"Lead Status",type:"dropdown",options:"New,Contacted,Qualified,Proposal,Closed Won,Closed Lost"},{key:"budget",label:"Budget",type:"number"},{key:"notes",label:"Notes",type:"text"}],rows:[]},
-  ];
+function setLoadingMsg(msg){
+  document.getElementById("loading-msg").textContent=msg;
 }
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-async function loadConfig(){
-  try{
-    const res=await fetch(`${scriptUrl}?action=get&sheet=_Config`);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    if(data.databases&&data.databases.length>0){
-      databases=data.databases.map(db=>({...db,rows:db.rows||[]}));
-      toast("Databases loaded from Google Sheets.","ok");
-    } else {
-      // No config yet — start completely empty, do NOT save defaults
+function loadConfig(){
+  setLoadingMsg("Loading database structure…");
+  fetch(scriptUrl+"?action=get&sheet=_Config")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error) throw new Error(data.error);
+      if(data.databases && data.databases.length>0){
+        databases = data.databases.map(function(db){ return Object.assign({},db,{rows:[]}); });
+        setLoadingMsg("Loading records…");
+        loadAllDatabaseRows();
+      } else {
+        databases=[];
+        toast("No databases found. Create your first database to get started.","info");
+        hideLoadingScreen();
+        renderDbList();
+        selectMasterView();
+      }
+    })
+    .catch(function(e){
       databases=[];
-      toast("No databases found. Create your first database to get started.","info");
-    }
-  }catch(e){
-    // On error start empty rather than loading hardcoded defaults
-    databases=[];
-    toast("Could not load config: "+e.message,"err");
-  }
-  hideLoadingScreen();
-  renderDbList(); selectMasterView();
+      toast("Could not load config: "+e.message,"err");
+      hideLoadingScreen();
+      renderDbList();
+      selectMasterView();
+    });
 }
 
-async function saveConfig(){
+// Load rows for all databases sequentially then show master view
+function loadAllDatabaseRows(){
+  var index=0;
+
+  function loadNext(){
+    if(index >= databases.length){
+      // All databases loaded — build master and show app
+      masterRows=[];
+      databases.forEach(function(db){
+        (db.rows||[]).forEach(function(row){
+          masterRows.push(Object.assign({},row,{_database:db.name});
+        });
+      });
+      console.log("All rows loaded. Total master records:", masterRows.length);
+      toast("Loaded "+databases.length+" databases with "+masterRows.length+" records.","ok");
+      hideLoadingScreen();
+      renderDbList();
+      selectMasterView();
+      return;
+    }
+
+    var db=databases[index];
+    setLoadingMsg("Loading "+db.name+"…");
+    fetch(scriptUrl+"?action=get&sheet="+encodeURIComponent(db.name))
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data.error){
+          db.rows=data.rows||[];
+          console.log("Loaded",db.name,":",db.rows.length,"rows");
+        } else {
+          console.warn("Error loading",db.name,":",data.error);
+          db.rows=[];
+        }
+        index++;
+        loadNext();
+      })
+      .catch(function(e){
+        console.warn("Failed to fetch",db.name,":",e.message);
+        db.rows=[];
+        index++;
+        loadNext();
+      });
+  }
+
+  loadNext();
+}
+
+function saveConfig(){
   if(!scriptUrl) return;
-  // Save databases without rows (rows live in sheets, not config)
-  const configData=databases.map(db=>({...db,rows:[]}));
-  try{
-    await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"saveConfig",databases:configData})});
-  }catch(e){ toast("Config save failed: "+e.message,"err"); }
+  var configData=databases.map(function(db){
+    return {id:db.id,name:db.name,desc:db.desc,icon:db.icon,color:db.color,schema:db.schema,rows:[]};
+  });
+  fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"saveConfig",databases:configData})})
+    .catch(function(e){ toast("Config save failed: "+e.message,"err"); });
 }
 
 // ── SETUP BANNER ──────────────────────────────────────────────────────────────
-async function saveScriptUrl(){
-  const v=document.getElementById("script-url-input").value.trim();
+function saveScriptUrl(){
+  var v=document.getElementById("script-url-input").value.trim();
   if(!v.startsWith("https://script.google.com")){ toast("Invalid URL.","err"); return; }
-  scriptUrl=v; localStorage.setItem("dh_script_url",scriptUrl);
+  scriptUrl=v;
+  localStorage.setItem("dh_script_url",scriptUrl);
   document.getElementById("setup-banner").style.display="none";
   document.getElementById("loading-screen").style.display="flex";
-  toast("Connected! Loading config…","info");
-  await loadConfig();
+  loadConfig();
 }
+
 function dismissBanner(){
   document.getElementById("setup-banner").style.display="none";
   databases=[];
-  renderDbList(); selectMasterView();
+  renderDbList();
+  selectMasterView();
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
-function toast(msg,type="ok"){
-  const c=document.getElementById("toast-container");
-  const t=document.createElement("div"); t.className=`toast ${type}`;
-  t.innerHTML=`<span>${{ok:"✅",err:"❌",info:"ℹ️"}[type]||""}</span><span>${msg}</span>`;
+function toast(msg,type){
+  type=type||"ok";
+  var c=document.getElementById("toast-container");
+  var t=document.createElement("div"); t.className="toast "+type;
+  var icons={ok:"✅",err:"❌",info:"ℹ️"};
+  t.innerHTML="<span>"+(icons[type]||"")+"</span><span>"+msg+"</span>";
   c.appendChild(t);
-  setTimeout(()=>{ t.style.animation="slideOut .25s ease forwards"; setTimeout(()=>t.remove(),250); },3500);
-  if(type==="ok"){ const ts=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}); document.getElementById("last-saved").textContent="Saved "+ts; document.getElementById("footer-saved").textContent="Last saved: "+ts; }
+  setTimeout(function(){ t.style.animation="slideOut .25s ease forwards"; setTimeout(function(){ t.remove(); },250); },3500);
+  if(type==="ok"){
+    var ts=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    document.getElementById("last-saved").textContent="Saved "+ts;
+    document.getElementById("footer-saved").textContent="Last saved: "+ts;
+  }
 }
 
 // ── GOOGLE SHEETS ─────────────────────────────────────────────────────────────
-async function loadFromSheet(){
+function refreshCurrentView(){
+  if(isMasterView){
+    masterRows=[];
+    databases.forEach(function(db){ db.rows=[]; });
+    loadAllDatabaseRows();
+  } else {
+    loadFromSheet();
+  }
+}
+
+function loadFromSheet(){
   if(!scriptUrl) return;
-  const db=getDb(); toast("Loading…","info");
-  try{
-    const res=await fetch(`${scriptUrl}?action=get&sheet=${encodeURIComponent(db.name)}`);
-    const data=await res.json(); if(data.error) throw new Error(data.error);
-    db.rows=data.rows||[]; renderTable(); renderDbList(); toast("Data loaded.","ok");
-  }catch(e){ toast("Load failed: "+e.message,"err"); }
+  var db=getDb();
+  toast("Loading…","info");
+  fetch(scriptUrl+"?action=get&sheet="+encodeURIComponent(db.name))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error) throw new Error(data.error);
+      db.rows=data.rows||[];
+      renderTable(); renderDbList(); toast("Data loaded.","ok");
+    })
+    .catch(function(e){ toast("Load failed: "+e.message,"err"); });
 }
-async function loadMasterView(){
-  if(!scriptUrl){ buildMasterFromLocal(); return; }
-  toast("Loading master data…","info");
-  try{
-    const res=await fetch(`${scriptUrl}?action=get&sheet=Master%20List`);
-    const data=await res.json(); if(data.error) throw new Error(data.error);
-    masterRows=data.rows||[]; renderMasterTable(); updateMasterCount(); toast("Master data loaded.","ok");
-  }catch(e){ buildMasterFromLocal(); toast("Using local data.","info"); }
-}
-function buildMasterFromLocal(){
-  masterRows=[];
-  databases.forEach(db=>{ (db.rows||[]).forEach(row=>{ masterRows.push({...row,_database:db.name}); }); });
-  updateMasterCount(); renderMasterTable();
-}
-async function saveRowToSheet(row,idx,dbName){
+
+function saveRowToSheet(row,idx,dbName){
   if(!scriptUrl) return;
-  try{ await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"upsert",sheet:dbName,row,rowIdx:idx})}); }
-  catch(e){ toast("Save failed: "+e.message,"err"); }
+  fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"upsert",sheet:dbName,row:row,rowIdx:idx})})
+    .catch(function(e){ toast("Save failed: "+e.message,"err"); });
 }
-async function deleteRowFromSheet(idx,dbName){
+
+function deleteRowFromSheet(idx,dbName){
   if(!scriptUrl) return;
-  try{ await fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"delete",sheet:dbName,rowIdx:idx})}); }
-  catch(e){ toast("Delete failed: "+e.message,"err"); }
+  fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"delete",sheet:dbName,rowIdx:idx})})
+    .catch(function(e){ toast("Delete failed: "+e.message,"err"); });
 }
 
 // ── HAMBURGER ─────────────────────────────────────────────────────────────────
@@ -489,30 +539,34 @@ function closeHamburger(){ document.getElementById("hamburger-menu").classList.r
 function toggleDbDropdown(){ document.getElementById("db-dropdown").classList.toggle("open"); }
 
 function renderDbList(){
-  const el=document.getElementById("db-list"); el.innerHTML="";
-  databases.forEach(db=>{
-    const div=document.createElement("div");
+  var el=document.getElementById("db-list"); el.innerHTML="";
+  databases.forEach(function(db){
+    var div=document.createElement("div");
     div.className="db-item"+(db.id===currentDbId&&!isMasterView?" active":"");
-    div.innerHTML=`<div class="db-item-icon" style="background:${db.color}20">${db.icon}</div>
-      <div class="db-item-info"><div class="db-item-name">${db.name}</div><div class="db-item-desc">${db.desc||""}</div></div>
-      <span class="db-item-count">${(db.rows||[]).length}</span>`;
-    div.onclick=()=>{ selectDb(db.id); document.getElementById("db-dropdown").classList.remove("open"); };
+    div.innerHTML='<div class="db-item-icon" style="background:'+db.color+'20">'+db.icon+'</div>'
+      +'<div class="db-item-info"><div class="db-item-name">'+db.name+'</div><div class="db-item-desc">'+(db.desc||"")+'</div></div>'
+      +'<span class="db-item-count">'+(db.rows||[]).length+'</span>';
+    div.onclick=function(){ selectDb(db.id); document.getElementById("db-dropdown").classList.remove("open"); };
     el.appendChild(div);
   });
   updateMasterCount();
 }
 
 function updateMasterCount(){
-  const total=databases.reduce((s,d)=>s+(d.rows||[]).length,0);
+  var total=databases.reduce(function(s,d){ return s+(d.rows||[]).length; },0);
   document.getElementById("master-count").textContent=total;
 }
 
+function getDb(id){ id=id||currentDbId; return databases.find(function(d){ return d.id===id; }); }
+function allCols(db){ return SHARED_COLS.concat(db.schema||[]); }
+
 function selectMasterView(){
-  isMasterView=true; currentDbId=null; editCell=null; sortConfig={key:null,dir:"asc"}; activeFilters=[];
+  isMasterView=true; currentDbId=null; editCell=null;
+  sortConfig={key:null,dir:"asc"}; activeFilters=[];
   document.getElementById("db-dropdown").classList.remove("open");
   document.getElementById("nav-dot").style.background="#7c3aed";
   document.getElementById("nav-label").textContent="🌐 Master View";
-  document.getElementById("nav-count").textContent=databases.reduce((s,d)=>s+(d.rows||[]).length,0);
+  document.getElementById("nav-count").textContent=databases.reduce(function(s,d){ return s+(d.rows||[]).length; },0);
   document.getElementById("db-selector-btn").className="db-selector-btn master-active";
   document.getElementById("bc-dot").style.background="#7c3aed";
   document.getElementById("bc-name").textContent="Master View";
@@ -522,13 +576,13 @@ function selectMasterView(){
   document.getElementById("master-nav-item").className="db-item master-item active";
   document.getElementById("delete-db-item").style.display="none";
   document.getElementById("filter-bar").classList.add("hidden");
-  renderFilterChips(); renderDbList();
-  buildMasterFromLocal();
+  renderFilterChips(); renderDbList(); renderMasterTable();
 }
 
 function selectDb(id){
-  isMasterView=false; currentDbId=id; editCell=null; sortConfig={key:null,dir:"asc"}; activeFilters=[];
-  const db=getDb();
+  isMasterView=false; currentDbId=id; editCell=null;
+  sortConfig={key:null,dir:"asc"}; activeFilters=[];
+  var db=getDb();
   document.getElementById("nav-dot").style.background=db.color;
   document.getElementById("nav-label").textContent=db.icon+" "+db.name;
   document.getElementById("nav-count").textContent=(db.rows||[]).length;
@@ -543,148 +597,269 @@ function selectDb(id){
   document.getElementById("delete-db-item").style.display="";
   document.getElementById("filter-bar").classList.add("hidden");
   renderFilterChips(); renderDbList(); buildHeader(); renderTable();
-  if(scriptUrl) loadFromSheet();
 }
-
-function getDb(id=currentDbId){ return databases.find(d=>d.id===id); }
-function allCols(db){ return [...SHARED_COLS,...(db.schema||[])]; }
 
 // ── MASTER COLS ───────────────────────────────────────────────────────────────
 function getAllMasterCols(){
-  const map=new Map();
+  var map=new Map();
   map.set("_database",{key:"_database",label:"Database",type:"text"});
-  SHARED_COLS.forEach(c=>map.set(c.key,c));
-  databases.forEach(db=>{ (db.schema||[]).forEach(c=>{ if(!map.has(c.key)) map.set(c.key,c); }); });
+  SHARED_COLS.forEach(function(c){ map.set(c.key,c); });
+  databases.forEach(function(db){
+    (db.schema||[]).forEach(function(c){ if(!map.has(c.key)) map.set(c.key,c); });
+  });
   return Array.from(map.values());
 }
-function getMasterCols(){ return getAllMasterCols().filter(c=>!masterHiddenCols.includes(c.key)); }
+function getMasterCols(){
+  return getAllMasterCols().filter(function(c){ return masterHiddenCols.indexOf(c.key)===-1; });
+}
+
+function buildMasterFromLocal(){
+  masterRows=[];
+  databases.forEach(function(db){
+    (db.rows||[]).forEach(function(row){
+      masterRows.push(Object.assign({},row,{_database:db.name}));
+    });
+  });
+}
 
 // ── FILTERS ───────────────────────────────────────────────────────────────────
-function toggleFilterPanel(){ document.getElementById("filter-bar").classList.toggle("hidden"); if(!document.getElementById("filter-bar").classList.contains("hidden")) populateFilterCols(); }
-function populateFilterCols(){ const sel=document.getElementById("filter-col-select"); sel.innerHTML=""; const cols=isMasterView?getMasterCols():allCols(getDb()); cols.forEach(c=>{ const o=document.createElement("option"); o.value=c.key; o.textContent=c.label; sel.appendChild(o); }); }
-function openFilterPopup(){ populateFilterCols(); const pp=document.getElementById("filter-popup"); pp.style.display=pp.style.display==="none"?"block":"none"; }
-function applyFilter(){ const col=document.getElementById("filter-col-select").value; const val=document.getElementById("filter-val-input").value.trim(); if(!val) return; const cols=isMasterView?getMasterCols():allCols(getDb()); const colDef=cols.find(c=>c.key===col); activeFilters.push({key:col,label:colDef?.label||col,val}); document.getElementById("filter-popup").style.display="none"; document.getElementById("filter-val-input").value=""; renderFilterChips(); renderTable(); }
-function renderFilterChips(){ const el=document.getElementById("filter-chips"); el.innerHTML=""; activeFilters.forEach((f,i)=>{ const chip=document.createElement("div"); chip.className="filter-chip"; chip.innerHTML=`<span>${f.label} = <strong>${f.val}</strong></span><button onclick="removeFilter(${i})">✕</button>`; el.appendChild(chip); }); }
+function toggleFilterPanel(){
+  document.getElementById("filter-bar").classList.toggle("hidden");
+  if(!document.getElementById("filter-bar").classList.contains("hidden")) populateFilterCols();
+}
+function populateFilterCols(){
+  var sel=document.getElementById("filter-col-select"); sel.innerHTML="";
+  var cols=isMasterView?getMasterCols():allCols(getDb());
+  cols.forEach(function(c){ var o=document.createElement("option"); o.value=c.key; o.textContent=c.label; sel.appendChild(o); });
+}
+function openFilterPopup(){
+  populateFilterCols();
+  var pp=document.getElementById("filter-popup");
+  pp.style.display=pp.style.display==="none"?"block":"none";
+}
+function applyFilter(){
+  var col=document.getElementById("filter-col-select").value;
+  var val=document.getElementById("filter-val-input").value.trim();
+  if(!val) return;
+  var cols=isMasterView?getMasterCols():allCols(getDb());
+  var colDef=cols.find(function(c){ return c.key===col; });
+  activeFilters.push({key:col,label:colDef?colDef.label:col,val:val});
+  document.getElementById("filter-popup").style.display="none";
+  document.getElementById("filter-val-input").value="";
+  renderFilterChips(); renderTable();
+}
+function renderFilterChips(){
+  var el=document.getElementById("filter-chips"); el.innerHTML="";
+  activeFilters.forEach(function(f,i){
+    var chip=document.createElement("div"); chip.className="filter-chip";
+    chip.innerHTML='<span>'+f.label+' = <strong>'+f.val+'</strong></span><button onclick="removeFilter('+i+')">✕</button>';
+    el.appendChild(chip);
+  });
+}
 function removeFilter(i){ activeFilters.splice(i,1); renderFilterChips(); renderTable(); }
 function clearFilters(){ activeFilters=[]; renderFilterChips(); renderTable(); }
-function applyFiltersToRows(rows){ if(!activeFilters.length) return rows; return rows.filter(row=>activeFilters.every(f=>String(row[f.key]||"").toLowerCase().includes(f.val.toLowerCase()))); }
+function applyFiltersToRows(rows){
+  if(!activeFilters.length) return rows;
+  return rows.filter(function(row){
+    return activeFilters.every(function(f){
+      return String(row[f.key]||"").toLowerCase().indexOf(f.val.toLowerCase())!==-1;
+    });
+  });
+}
 
 // ── MASTER TABLE ──────────────────────────────────────────────────────────────
 function renderMasterTable(){
-  const cols=getMasterCols();
-  const search=(document.getElementById("search-input").value||"").toLowerCase();
-  let filtered=masterRows.filter(row=>cols.some(c=>String(row[c.key]||"").toLowerCase().includes(search)));
+  var cols=getMasterCols();
+  var search=(document.getElementById("search-input").value||"").toLowerCase();
+  var filtered=masterRows.filter(function(row){
+    return cols.some(function(c){ return String(row[c.key]||"").toLowerCase().indexOf(search)!==-1; });
+  });
   filtered=applyFiltersToRows(filtered);
-  if(sortConfig.key) filtered.sort((a,b)=>{ const av=a[sortConfig.key]||"",bv=b[sortConfig.key]||""; return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
+  if(sortConfig.key){
+    filtered.sort(function(a,b){
+      var av=a[sortConfig.key]||"",bv=b[sortConfig.key]||"";
+      return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString());
+    });
+  }
   document.getElementById("record-count").textContent=filtered.length+" of "+masterRows.length+" records";
-  const thead=document.getElementById("thead"); thead.innerHTML="";
-  const htr=document.createElement("tr"); htr.className="master-head";
-  cols.forEach(c=>{ const th=document.createElement("th"); if(c.key==="_database") th.className="master-col-head"; const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅"; th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`; th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; renderMasterTable(); }; htr.appendChild(th); });
-  const ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath); thead.appendChild(htr);
-  const tbody=document.getElementById("tbody"); tbody.innerHTML="";
+  var thead=document.getElementById("thead"); thead.innerHTML="";
+  var htr=document.createElement("tr"); htr.className="master-head";
+  cols.forEach(function(c){
+    var th=document.createElement("th");
+    if(c.key==="_database") th.className="master-col-head";
+    var arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅";
+    th.innerHTML=c.label+'<span style="opacity:.4">'+arr+'</span>';
+    th.onclick=(function(col){ return function(){ sortConfig={key:col.key,dir:sortConfig.key===col.key&&sortConfig.dir==="asc"?"desc":"asc"}; renderMasterTable(); }; })(c);
+    htr.appendChild(th);
+  });
+  var ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath); thead.appendChild(htr);
+  var tbody=document.getElementById("tbody"); tbody.innerHTML="";
   if(filtered.length===0){ renderEmptyState(tbody,cols.length+1,"🌐","No records found","Try adjusting your search or filters."); return; }
-  filtered.forEach(row=>{
-    const masterIdx=masterRows.indexOf(row);
-    const dbObj=databases.find(d=>d.name===row._database);
-    const isEditing=editCell&&editCell.masterIdx===masterIdx;
-    const tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
-    cols.forEach(c=>{
-      const td=document.createElement("td"); if(c.key==="_database") td.className="master-col-td";
+  filtered.forEach(function(row){
+    var masterIdx=masterRows.indexOf(row);
+    var dbObj=databases.find(function(d){ return d.name===row._database; });
+    var isEditing=editCell&&editCell.masterIdx===masterIdx;
+    var tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
+    cols.forEach(function(c){
+      var td=document.createElement("td"); if(c.key==="_database") td.className="master-col-td";
       if(c.key==="_database"){
-        const div=document.createElement("div"); div.className="cell";
-        if(dbObj){ const span=document.createElement("span"); span.className="db-source-badge"; span.style.background=dbObj.color; span.textContent=dbObj.icon+" "+row._database; div.appendChild(span); }
+        var div=document.createElement("div"); div.className="cell";
+        if(dbObj){ var span=document.createElement("span"); span.className="db-source-badge"; span.style.background=dbObj.color; span.textContent=dbObj.icon+" "+row._database; div.appendChild(span); }
         else div.textContent=row._database||"";
         td.appendChild(div);
       } else if(isEditing&&editCell.colKey===c.key){
-        const colDef=dbObj?allCols(dbObj).find(x=>x.key===c.key):null;
-        renderEditInput(td,c,colDef||c,row,v=>commitMasterEdit(masterIdx,c.key,v,dbObj));
+        var colDef=dbObj?allCols(dbObj).find(function(x){ return x.key===c.key; }):null;
+        renderEditInput(td,c,colDef||c,row,function(v){ commitMasterEdit(masterIdx,c.key,v,dbObj); });
       } else {
-        renderDisplayCell(td,c,row,()=>{ editCell={masterIdx,colKey:c.key}; renderMasterTable(); });
+        renderDisplayCell(td,c,row,function(){ editCell={masterIdx:masterIdx,colKey:c.key}; renderMasterTable(); });
       }
       tr.appendChild(td);
     });
-    appendDeleteBtn(tr,()=>{ if(!confirm("Delete this row?")) return; if(dbObj){ const i=(dbObj.rows||[]).findIndex(r=>r.name===row.name&&r.email===row.email&&r.surname===row.surname); if(i>-1){ dbObj.rows.splice(i,1); deleteRowFromSheet(i,dbObj.name); } } masterRows.splice(masterIdx,1); renderMasterTable(); updateMasterCount(); });
+    appendDeleteBtn(tr,(function(r,mi,dbo){ return function(){
+      if(!confirm("Delete this row?")) return;
+      if(dbo){
+        var i=(dbo.rows||[]).findIndex(function(x){ return x.name===r.name&&x.email===r.email&&x.surname===r.surname; });
+        if(i>-1){ dbo.rows.splice(i,1); deleteRowFromSheet(i,dbo.name); }
+      }
+      masterRows.splice(mi,1); renderMasterTable(); updateMasterCount();
+    };})(row,masterIdx,dbObj));
     tbody.appendChild(tr);
   });
 }
 
 function commitMasterEdit(masterIdx,colKey,val,dbObj){
   masterRows[masterIdx][colKey]=val; editCell=null;
-  if(dbObj){ const src=dbObj.rows.find(r=>r.name===masterRows[masterIdx].name&&r.email===masterRows[masterIdx].email&&r.surname===masterRows[masterIdx].surname); if(src){ src[colKey]=val; saveRowToSheet(src,dbObj.rows.indexOf(src),dbObj.name); } }
-  toast("Saved to "+(dbObj?.name||"database"),"ok"); renderMasterTable();
+  if(dbObj){
+    var src=dbObj.rows.find(function(r){
+      return r.name===masterRows[masterIdx].name&&r.email===masterRows[masterIdx].email&&r.surname===masterRows[masterIdx].surname;
+    });
+    if(src){ src[colKey]=val; saveRowToSheet(src,dbObj.rows.indexOf(src),dbObj.name); }
+  }
+  toast("Saved to "+(dbObj?dbObj.name:"database"),"ok"); renderMasterTable();
 }
 
 // ── NORMAL TABLE ──────────────────────────────────────────────────────────────
 function buildHeader(){
-  const db=getDb(); if(!db) return;
-  const cols=allCols(db); const tr=document.createElement("tr");
-  cols.forEach(c=>{ const th=document.createElement("th"); const arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅"; th.innerHTML=`${c.label}<span style="opacity:.4">${arr}</span>`; th.onclick=()=>{ sortConfig={key:c.key,dir:sortConfig.key===c.key&&sortConfig.dir==="asc"?"desc":"asc"}; buildHeader(); renderTable(); }; tr.appendChild(th); });
-  const th=document.createElement("th"); th.textContent="Actions"; tr.appendChild(th);
-  const thead=document.getElementById("thead"); thead.innerHTML=""; thead.appendChild(tr);
+  var db=getDb(); if(!db) return;
+  var cols=allCols(db); var tr=document.createElement("tr");
+  cols.forEach(function(c){
+    var th=document.createElement("th");
+    var arr=sortConfig.key===c.key?(sortConfig.dir==="asc"?" ▲":" ▼"):" ⇅";
+    th.innerHTML=c.label+'<span style="opacity:.4">'+arr+'</span>';
+    th.onclick=(function(col){ return function(){ sortConfig={key:col.key,dir:sortConfig.key===col.key&&sortConfig.dir==="asc"?"desc":"asc"}; buildHeader(); renderTable(); }; })(c);
+    tr.appendChild(th);
+  });
+  var th=document.createElement("th"); th.textContent="Actions"; tr.appendChild(th);
+  var thead=document.getElementById("thead"); thead.innerHTML=""; thead.appendChild(tr);
 }
 
 function renderTable(){
   if(isMasterView){ renderMasterTable(); return; }
-  const db=getDb(); if(!db) return;
-  const cols=allCols(db);
-  const search=(document.getElementById("search-input").value||"").toLowerCase();
-  let filtered=(db.rows||[]).filter(row=>cols.some(c=>String(row[c.key]||"").toLowerCase().includes(search)));
+  var db=getDb(); if(!db) return;
+  var cols=allCols(db);
+  var search=(document.getElementById("search-input").value||"").toLowerCase();
+  var filtered=(db.rows||[]).filter(function(row){
+    return cols.some(function(c){ return String(row[c.key]||"").toLowerCase().indexOf(search)!==-1; });
+  });
   filtered=applyFiltersToRows(filtered);
-  if(sortConfig.key) filtered.sort((a,b)=>{ const av=a[sortConfig.key]||"",bv=b[sortConfig.key]||""; return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
+  if(sortConfig.key){
+    filtered.sort(function(a,b){
+      var av=a[sortConfig.key]||"",bv=b[sortConfig.key]||"";
+      return sortConfig.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString());
+    });
+  }
   document.getElementById("record-count").textContent=filtered.length+" of "+(db.rows||[]).length+" records";
   document.getElementById("nav-count").textContent=(db.rows||[]).length;
-  const tbody=document.getElementById("tbody"); tbody.innerHTML="";
-  if(filtered.length===0){ renderEmptyState(tbody,cols.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click '＋ Add Row' to add your first record.":"No records match your search or filters."); return; }
-  filtered.forEach(row=>{
-    const origIdx=(db.rows||[]).indexOf(row);
-    const isEditing=editCell&&editCell.rowIdx===origIdx;
-    const isSaving=savingCell===origIdx;
-    const tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
-    cols.forEach(c=>{
-      const td=document.createElement("td");
-      if(isEditing&&editCell.colKey===c.key) renderEditInput(td,c,c,row,v=>commitEdit(origIdx,c.key,v));
-      else renderDisplayCell(td,c,row,()=>{ editCell={rowIdx:origIdx,colKey:c.key}; renderTable(); },isSaving&&c===cols[0]);
+  var tbody=document.getElementById("tbody"); tbody.innerHTML="";
+  if(filtered.length===0){
+    renderEmptyState(tbody,cols.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click '＋ Add Row' to add your first record.":"No records match your search or filters.");
+    return;
+  }
+  filtered.forEach(function(row){
+    var origIdx=(db.rows||[]).indexOf(row);
+    var isEditing=editCell&&editCell.rowIdx===origIdx;
+    var isSaving=savingCell===origIdx;
+    var tr=document.createElement("tr"); if(isEditing) tr.className="editing-row";
+    cols.forEach(function(c){
+      var td=document.createElement("td");
+      if(isEditing&&editCell.colKey===c.key){
+        renderEditInput(td,c,c,row,function(v){ commitEdit(origIdx,c.key,v); });
+      } else {
+        renderDisplayCell(td,c,row,function(){ editCell={rowIdx:origIdx,colKey:c.key}; renderTable(); },isSaving&&c===cols[0]);
+      }
       tr.appendChild(td);
     });
-    appendDeleteBtn(tr,()=>{ if(!confirm("Delete this row?")) return; db.rows.splice(origIdx,1); deleteRowFromSheet(origIdx,db.name); renderTable(); renderDbList(); toast("Row deleted.","ok"); });
+    appendDeleteBtn(tr,(function(ri){ return function(){
+      if(!confirm("Delete this row?")) return;
+      db.rows.splice(ri,1); deleteRowFromSheet(ri,db.name);
+      renderTable(); renderDbList(); toast("Row deleted.","ok");
+    };})(origIdx));
     tbody.appendChild(tr);
   });
 }
 
 function renderEditInput(td,c,colDef,row,onCommit){
-  const type=colDef?.type||c.type;
-  if(type==="dropdown"){ const sel=document.createElement("select"); sel.className="cell"; const opts=((colDef?.options||c.options)||"").split(",").map(o=>o.trim()); sel.innerHTML=`<option value="">-- Select --</option>`+opts.map(o=>`<option${row[c.key]===o?" selected":""}>${o}</option>`).join(""); sel.onchange=()=>onCommit(sel.value); sel.onblur=()=>onCommit(sel.value); td.appendChild(sel); setTimeout(()=>sel.focus(),0); }
-  else if(type==="checkbox"){ const inp=document.createElement("input"); inp.type="checkbox"; inp.className="cell"; inp.checked=row[c.key]==="true"||row[c.key]===true; inp.onchange=()=>onCommit(String(inp.checked)); td.appendChild(inp); setTimeout(()=>inp.focus(),0); }
-  else { const inp=document.createElement("input"); inp.className="cell"; inp.type=type==="date"?"date":type==="number"?"number":"text"; inp.value=row[c.key]||""; inp.onblur=()=>onCommit(inp.value); inp.onkeydown=e=>{ if(e.key==="Enter") onCommit(inp.value); if(e.key==="Escape"){ editCell=null; renderTable(); } }; td.appendChild(inp); setTimeout(()=>inp.focus(),0); }
+  var type=(colDef&&colDef.type)||c.type;
+  if(type==="dropdown"){
+    var sel=document.createElement("select"); sel.className="cell";
+    var opts=((colDef&&colDef.options)||c.options||"").split(",").map(function(o){ return o.trim(); });
+    sel.innerHTML='<option value="">-- Select --</option>'+opts.map(function(o){ return '<option'+(row[c.key]===o?" selected":"")+'>'+o+'</option>'; }).join("");
+    sel.onchange=function(){ onCommit(sel.value); }; sel.onblur=function(){ onCommit(sel.value); };
+    td.appendChild(sel); setTimeout(function(){ sel.focus(); },0);
+  } else if(type==="checkbox"){
+    var inp=document.createElement("input"); inp.type="checkbox"; inp.className="cell";
+    inp.checked=row[c.key]==="true"||row[c.key]===true;
+    inp.onchange=function(){ onCommit(String(inp.checked)); };
+    td.appendChild(inp); setTimeout(function(){ inp.focus(); },0);
+  } else {
+    var inp=document.createElement("input"); inp.className="cell";
+    inp.type=type==="date"?"date":type==="number"?"number":"text";
+    inp.value=row[c.key]||"";
+    inp.onblur=function(){ onCommit(inp.value); };
+    inp.onkeydown=function(e){ if(e.key==="Enter") onCommit(inp.value); if(e.key==="Escape"){ editCell=null; renderTable(); } };
+    td.appendChild(inp); setTimeout(function(){ inp.focus(); },0);
+  }
 }
 
-function renderDisplayCell(td,c,row,onClick,showSpinner=false){
-  const div=document.createElement("div"); const val=row[c.key]; div.className="cell"+(val?"":" empty");
-  if(c.type==="dropdown"&&val){ const span=document.createElement("span"); span.className="badge"; span.style.background=strColor(val); span.textContent=val; div.appendChild(span); }
-  else if(c.type==="checkbox"){ const ct=document.createElement("span"); ct.style.fontSize="16px"; ct.textContent=val==="true"||val===true?"✅":"☐"; div.appendChild(ct); }
-  else { const ct=document.createElement("span"); ct.className="cell-text"; ct.textContent=val||"click to edit"; div.appendChild(ct); }
-  if(showSpinner){ const s=document.createElement("div"); s.className="saving-spinner"; div.appendChild(s); }
-  else { const hint=document.createElement("span"); hint.className="edit-hint"; hint.textContent="✏️"; div.appendChild(hint); }
+function renderDisplayCell(td,c,row,onClick,showSpinner){
+  var div=document.createElement("div"); var val=row[c.key];
+  div.className="cell"+(val?"":" empty");
+  if(c.type==="dropdown"&&val){
+    var span=document.createElement("span"); span.className="badge"; span.style.background=strColor(val); span.textContent=val; div.appendChild(span);
+  } else if(c.type==="checkbox"){
+    var ct=document.createElement("span"); ct.style.fontSize="16px"; ct.textContent=(val==="true"||val===true)?"✅":"☐"; div.appendChild(ct);
+  } else {
+    var ct=document.createElement("span"); ct.className="cell-text"; ct.textContent=val||"click to edit"; div.appendChild(ct);
+  }
+  if(showSpinner){
+    var s=document.createElement("div"); s.className="saving-spinner"; div.appendChild(s);
+  } else {
+    var hint=document.createElement("span"); hint.className="edit-hint"; hint.textContent="✏️"; div.appendChild(hint);
+  }
   div.onclick=onClick; td.appendChild(div);
 }
 
 function appendDeleteBtn(tr,onClick){
-  const td=document.createElement("td"); td.style.cssText="padding:6px 10px;text-align:center";
-  const btn=document.createElement("button"); btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.5;transition:opacity .15s";
-  btn.textContent="🗑"; btn.onmouseenter=()=>btn.style.opacity="1"; btn.onmouseleave=()=>btn.style.opacity=".5";
+  var td=document.createElement("td"); td.style.cssText="padding:6px 10px;text-align:center";
+  var btn=document.createElement("button"); btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.5;transition:opacity .15s";
+  btn.textContent="🗑";
+  btn.onmouseenter=function(){ btn.style.opacity="1"; };
+  btn.onmouseleave=function(){ btn.style.opacity=".5"; };
   btn.onclick=onClick; td.appendChild(btn); tr.appendChild(td);
 }
 
 function renderEmptyState(tbody,colspan,icon,title,desc){
-  const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=colspan; td.className="no-records";
-  td.innerHTML=`<div class="empty-icon">${icon}</div><div class="empty-title">${title}</div><div class="empty-desc">${desc}</div><button class="btn btn-primary" onclick="handleAddRow()" style="margin:0 auto">＋ Add Row</button>`;
+  var tr=document.createElement("tr"); var td=document.createElement("td");
+  td.colSpan=colspan; td.className="no-records";
+  td.innerHTML='<div class="empty-icon">'+icon+'</div><div class="empty-title">'+title+'</div><div class="empty-desc">'+desc+'</div><button class="btn btn-primary" onclick="handleAddRow()" style="margin:0 auto">＋ Add Row</button>';
   tr.appendChild(td); tbody.appendChild(tr);
 }
 
 function commitEdit(rowIdx,colKey,val){
-  const db=getDb(); db.rows[rowIdx][colKey]=val; editCell=null;
+  var db=getDb(); db.rows[rowIdx][colKey]=val; editCell=null;
   savingCell=rowIdx; renderTable();
-  saveRowToSheet(db.rows[rowIdx],rowIdx,db.name).then(()=>{ savingCell=null; toast("Saved to "+db.name,"ok"); renderTable(); renderDbList(); });
+  saveRowToSheet(db.rows[rowIdx],rowIdx,db.name);
+  setTimeout(function(){ savingCell=null; toast("Saved to "+db.name,"ok"); renderTable(); renderDbList(); },500);
 }
 
 // ── SIDE PANEL ────────────────────────────────────────────────────────────────
@@ -692,13 +867,14 @@ function handleAddRow(){ if(isMasterView) openPickDbPanel(); else openAddPanel(c
 
 function openPickDbPanel(){
   document.getElementById("panel-title").textContent="➕ Add Row — Choose Database";
-  const body=document.getElementById("panel-body"); body.innerHTML="";
-  const t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Which database should this row go into?"; body.appendChild(t);
-  const list=document.createElement("div"); list.className="panel-db-select";
-  databases.forEach(db=>{
-    const div=document.createElement("div"); div.className="panel-db-opt";
-    div.innerHTML=`<div style="width:34px;height:34px;border-radius:9px;background:${db.color}20;display:flex;align-items:center;justify-content:center;font-size:17px">${db.icon}</div><div><div style="font-weight:600;font-size:13px">${db.name}</div><div style="font-size:11px;color:#94a3b8">${db.desc||""}</div></div>`;
-    div.onclick=()=>{ closePanel(); openAddPanel(db.id); };
+  var body=document.getElementById("panel-body"); body.innerHTML="";
+  var t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Which database should this row go into?"; body.appendChild(t);
+  var list=document.createElement("div"); list.className="panel-db-select";
+  databases.forEach(function(db){
+    var div=document.createElement("div"); div.className="panel-db-opt";
+    div.innerHTML='<div style="width:34px;height:34px;border-radius:9px;background:'+db.color+'20;display:flex;align-items:center;justify-content:center;font-size:17px">'+db.icon+'</div>'
+      +'<div><div style="font-weight:600;font-size:13px">'+db.name+'</div><div style="font-size:11px;color:#94a3b8">'+(db.desc||"")+'</div></div>';
+    div.onclick=function(){ closePanel(); openAddPanel(db.id); };
     list.appendChild(div);
   });
   body.appendChild(list);
@@ -707,21 +883,29 @@ function openPickDbPanel(){
 
 function openAddPanel(dbId){
   panelTargetDbId=dbId;
-  const db=databases.find(d=>d.id===dbId);
-  document.getElementById("panel-title").textContent=`➕ Add Row to ${db.icon} ${db.name}`;
-  const body=document.getElementById("panel-body"); body.innerHTML="";
-  const t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Fill in the details below"; body.appendChild(t);
-  allCols(db).forEach(c=>{
-    const wrap=document.createElement("div"); wrap.className="panel-field";
-    const lbl=document.createElement("label"); lbl.textContent=c.label; wrap.appendChild(lbl);
-    let inp;
-    if(c.type==="dropdown"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML=`<option value="">-- Select --</option>`+((c.options||"").split(",").map(o=>`<option>${o.trim()}</option>`).join("")); }
-    else if(c.type==="checkbox"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML=`<option value="">-- Select --</option><option value="true">✅ Yes</option><option value="false">☐ No</option>`; }
-    else if(c.type==="date"){ inp=document.createElement("input"); inp.type="date"; inp.id="pf_"+c.key; }
-    else if(c.type==="number"){ inp=document.createElement("input"); inp.type="number"; inp.id="pf_"+c.key; }
-    else { inp=document.createElement("input"); inp.type="text"; inp.id="pf_"+c.key; inp.placeholder=`Enter ${c.label.toLowerCase()}…`; }
+  var db=databases.find(function(d){ return d.id===dbId; });
+  document.getElementById("panel-title").textContent="➕ Add Row to "+db.icon+" "+db.name;
+  var body=document.getElementById("panel-body"); body.innerHTML="";
+  var t=document.createElement("div"); t.className="panel-section-title"; t.textContent="Fill in the details below"; body.appendChild(t);
+  allCols(db).forEach(function(c){
+    var wrap=document.createElement("div"); wrap.className="panel-field";
+    var lbl=document.createElement("label"); lbl.textContent=c.label; wrap.appendChild(lbl);
+    var inp;
+    if(c.type==="dropdown"){
+      inp=document.createElement("select"); inp.id="pf_"+c.key;
+      inp.innerHTML='<option value="">-- Select --</option>'+((c.options||"").split(",").map(function(o){ return '<option>'+o.trim()+'</option>'; }).join(""));
+    } else if(c.type==="checkbox"){
+      inp=document.createElement("select"); inp.id="pf_"+c.key;
+      inp.innerHTML='<option value="">-- Select --</option><option value="true">✅ Yes</option><option value="false">☐ No</option>';
+    } else if(c.type==="date"){
+      inp=document.createElement("input"); inp.type="date"; inp.id="pf_"+c.key;
+    } else if(c.type==="number"){
+      inp=document.createElement("input"); inp.type="number"; inp.id="pf_"+c.key;
+    } else {
+      inp=document.createElement("input"); inp.type="text"; inp.id="pf_"+c.key; inp.placeholder="Enter "+c.label.toLowerCase()+"…";
+    }
     wrap.appendChild(inp);
-    if(FIELD_DESCS[c.type]){ const desc=document.createElement("div"); desc.className="panel-field-desc"; desc.textContent=FIELD_DESCS[c.type]; wrap.appendChild(desc); }
+    if(FIELD_DESCS[c.type]){ var desc=document.createElement("div"); desc.className="panel-field-desc"; desc.textContent=FIELD_DESCS[c.type]; wrap.appendChild(desc); }
     body.appendChild(wrap);
   });
   document.getElementById("add-panel").classList.add("open");
@@ -730,11 +914,13 @@ function openAddPanel(dbId){
 function closePanel(){ document.getElementById("add-panel").classList.remove("open"); panelTargetDbId=null; }
 
 function submitPanel(){
-  const db=databases.find(d=>d.id===panelTargetDbId); if(!db) return;
-  const cols=allCols(db);
-  const row=Object.fromEntries(cols.map(c=>{ const el=document.getElementById("pf_"+c.key); return [c.key,el?el.value:""]; }));
+  var db=databases.find(function(d){ return d.id===panelTargetDbId; }); if(!db) return;
+  var cols=allCols(db);
+  var row={};
+  cols.forEach(function(c){ var el=document.getElementById("pf_"+c.key); row[c.key]=el?el.value:""; });
   db.rows.push(row); saveRowToSheet(row,db.rows.length-1,db.name);
-  if(isMasterView){ masterRows.push({...row,_database:db.name}); updateMasterCount(); renderMasterTable(); }
+  masterRows.push(Object.assign({},row,{_database:db.name}));
+  if(isMasterView){ updateMasterCount(); renderMasterTable(); }
   else { renderTable(); renderDbList(); }
   closePanel(); toast("Row added to "+db.name,"ok");
 }
@@ -742,18 +928,18 @@ function submitPanel(){
 // ── SCHEMA ────────────────────────────────────────────────────────────────────
 function openSchemaModal(){
   if(isMasterView){ openMasterSchemaModal(); return; }
-  const db=getDb();
+  var db=getDb();
   document.getElementById("schema-modal-title").textContent="📐 Edit Data Schema";
-  document.getElementById("schema-modal-sub").textContent=`Customise the columns for: ${db.icon} ${db.name}`;
-  const body=document.getElementById("schema-modal-body"); body.innerHTML="";
-  const sharedTitle=document.createElement("div"); sharedTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"; sharedTitle.textContent="Shared Base Columns"; body.appendChild(sharedTitle);
-  const sharedWrap=document.createElement("div");
-  SHARED_COLS.forEach(c=>{ sharedWrap.innerHTML+=`<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px"><span>${c.label}</span><span class="shared-tag">${c.type}</span></div>`; });
+  document.getElementById("schema-modal-sub").textContent="Customise the columns for: "+db.icon+" "+db.name;
+  var body=document.getElementById("schema-modal-body"); body.innerHTML="";
+  var sharedTitle=document.createElement("div"); sharedTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"; sharedTitle.textContent="Shared Base Columns"; body.appendChild(sharedTitle);
+  var sharedWrap=document.createElement("div");
+  SHARED_COLS.forEach(function(c){ sharedWrap.innerHTML+='<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px"><span>'+c.label+'</span><span class="shared-tag">'+c.type+'</span></div>'; });
   body.appendChild(sharedWrap);
-  const customTitle=document.createElement("div"); customTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px"; customTitle.textContent="Custom Columns"; body.appendChild(customTitle);
-  const fieldsWrap=document.createElement("div"); fieldsWrap.id="schema-fields-wrap"; body.appendChild(fieldsWrap);
-  const addBtn=document.createElement("button"); addBtn.className="btn btn-ghost"; addBtn.style.cssText="width:100%;margin-top:8px;justify-content:center"; addBtn.textContent="＋ Add Column"; addBtn.onclick=addSchemaField; body.appendChild(addBtn);
-  const preview=document.createElement("div"); preview.className="schema-preview"; preview.id="schema-preview-box"; preview.style.display="none"; preview.innerHTML=`<strong>Column order preview:</strong> <span id="schema-preview-text"></span>`; body.appendChild(preview);
+  var customTitle=document.createElement("div"); customTitle.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px"; customTitle.textContent="Custom Columns"; body.appendChild(customTitle);
+  var fieldsWrap=document.createElement("div"); fieldsWrap.id="schema-fields-wrap"; body.appendChild(fieldsWrap);
+  var addBtn=document.createElement("button"); addBtn.className="btn btn-ghost"; addBtn.style.cssText="width:100%;margin-top:8px;justify-content:center"; addBtn.textContent="＋ Add Column"; addBtn.onclick=addSchemaField; body.appendChild(addBtn);
+  var preview=document.createElement("div"); preview.className="schema-preview"; preview.id="schema-preview-box"; preview.style.display="none"; preview.innerHTML="<strong>Column order preview:</strong> <span id='schema-preview-text'></span>"; body.appendChild(preview);
   tempSchemaFields=JSON.parse(JSON.stringify(db.schema||[]));
   renderSchemaFields(); updateSchemaPreview();
   document.getElementById("schema-save-btn").onclick=saveSchema;
@@ -763,12 +949,12 @@ function openSchemaModal(){
 function openMasterSchemaModal(){
   document.getElementById("schema-modal-title").textContent="📐 Master View — Column Visibility";
   document.getElementById("schema-modal-sub").textContent="Choose which columns are visible in the Master View.";
-  const body=document.getElementById("schema-modal-body"); body.innerHTML="";
-  getAllMasterCols().forEach(c=>{
-    const isVisible=!masterHiddenCols.includes(c.key);
-    const row=document.createElement("div"); row.className="visibility-row";
-    row.innerHTML=`<div class="visibility-row-left"><span style="font-size:13px;font-weight:500;color:#1e293b">${c.label}</span><span class="shared-tag" style="margin-left:4px">${c.type}</span></div>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b"><input type="checkbox" id="mcol_${c.key}" ${isVisible?"checked":""} style="width:16px;height:16px;cursor:pointer"/> Show</label>`;
+  var body=document.getElementById("schema-modal-body"); body.innerHTML="";
+  getAllMasterCols().forEach(function(c){
+    var isVisible=masterHiddenCols.indexOf(c.key)===-1;
+    var row=document.createElement("div"); row.className="visibility-row";
+    row.innerHTML='<div class="visibility-row-left"><span style="font-size:13px;font-weight:500;color:#1e293b">'+c.label+'</span><span class="shared-tag" style="margin-left:4px">'+c.type+'</span></div>'
+      +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b"><input type="checkbox" id="mcol_'+c.key+'" '+(isVisible?"checked":"")+'style="width:16px;height:16px;cursor:pointer"/> Show</label>';
     body.appendChild(row);
   });
   document.getElementById("schema-save-btn").onclick=saveMasterSchema;
@@ -776,17 +962,18 @@ function openMasterSchemaModal(){
 }
 
 function renderSchemaFields(){
-  const wrap=document.getElementById("schema-fields-wrap"); if(!wrap) return; wrap.innerHTML="";
-  tempSchemaFields.forEach((f,i)=>{
-    const div=document.createElement("div"); div.className="schema-field";
-    const main=document.createElement("div"); main.className="schema-field-main";
-    main.innerHTML=`<input class="field-name" type="text" value="${f.label||""}" placeholder="Column name" onchange="tempSchemaFields[${i}].label=this.value;tempSchemaFields[${i}].key=this.value.toLowerCase().replace(/\\s+/g,'_');updateSchemaPreview()"/>
-      <select class="field-type" onchange="tempSchemaFields[${i}].type=this.value;renderSchemaFields();updateSchemaPreview()">
-        ${FIELD_TYPES.map(t=>`<option value="${t}"${f.type===t?" selected":""}>${t} — ${FIELD_DESCS[t]}</option>`).join("")}
-      </select>
-      ${f.type==="dropdown"?`<input class="field-opts" type="text" value="${f.options||""}" placeholder="opt1, opt2, opt3" onchange="tempSchemaFields[${i}].options=this.value"/>`:""}
-      <div class="field-type-desc">${FIELD_DESCS[f.type]||""}</div>`;
-    const rmv=document.createElement("button"); rmv.className="remove-field"; rmv.textContent="✕"; rmv.onclick=()=>{ tempSchemaFields.splice(i,1); renderSchemaFields(); updateSchemaPreview(); };
+  var wrap=document.getElementById("schema-fields-wrap"); if(!wrap) return; wrap.innerHTML="";
+  tempSchemaFields.forEach(function(f,i){
+    var div=document.createElement("div"); div.className="schema-field";
+    var main=document.createElement("div"); main.className="schema-field-main";
+    main.innerHTML='<input class="field-name" type="text" value="'+(f.label||"")+'" placeholder="Column name" onchange="tempSchemaFields['+i+'].label=this.value;tempSchemaFields['+i+'].key=this.value.toLowerCase().replace(/\\s+/g,\'_\');updateSchemaPreview()">'
+      +'<select class="field-type" onchange="tempSchemaFields['+i+'].type=this.value;renderSchemaFields();updateSchemaPreview()">'
+      +FIELD_TYPES.map(function(t){ return '<option value="'+t+'"'+(f.type===t?" selected":"")+'>'+t+' — '+FIELD_DESCS[t]+'</option>'; }).join("")
+      +'</select>'
+      +(f.type==="dropdown"?'<input class="field-opts" type="text" value="'+(f.options||"")+'" placeholder="opt1, opt2, opt3" onchange="tempSchemaFields['+i+'].options=this.value"/>':"")
+      +'<div class="field-type-desc">'+(FIELD_DESCS[f.type]||"")+'</div>';
+    var rmv=document.createElement("button"); rmv.className="remove-field"; rmv.textContent="✕";
+    rmv.onclick=(function(idx){ return function(){ tempSchemaFields.splice(idx,1); renderSchemaFields(); updateSchemaPreview(); }; })(i);
     div.appendChild(main); div.appendChild(rmv); wrap.appendChild(div);
   });
 }
@@ -794,84 +981,108 @@ function renderSchemaFields(){
 function addSchemaField(){ tempSchemaFields.push({key:"field_"+Date.now(),label:"New Column",type:"text",options:""}); renderSchemaFields(); updateSchemaPreview(); }
 
 function updateSchemaPreview(){
-  const all=[...SHARED_COLS,...tempSchemaFields];
-  const box=document.getElementById("schema-preview-box"); const txt=document.getElementById("schema-preview-text");
+  var all=SHARED_COLS.concat(tempSchemaFields);
+  var box=document.getElementById("schema-preview-box"); var txt=document.getElementById("schema-preview-text");
   if(!box||!txt) return;
-  if(all.length>0){ box.style.display="block"; txt.textContent=all.map(c=>c.label).join(" → "); }
-  else box.style.display="none";
+  box.style.display=all.length>0?"block":"none";
+  if(txt) txt.textContent=all.map(function(c){ return c.label; }).join(" → ");
 }
 
 function saveSchema(){
-  const db=getDb();
-  db.schema=tempSchemaFields.map(f=>({...f,key:f.label.toLowerCase().replace(/\s+/g,"_")}));
-  saveConfig(); // Save updated structure to Google Sheets
-  if(scriptUrl) fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"syncHeaders",sheet:db.name,headers:allCols(db).map(c=>c.key)})});
+  var db=getDb();
+  db.schema=tempSchemaFields.map(function(f){ return Object.assign({},f,{key:f.label.toLowerCase().replace(/\s+/g,"_")}); });
+  saveConfig();
+  if(scriptUrl) fetch(scriptUrl,{method:"POST",body:JSON.stringify({action:"syncHeaders",sheet:db.name,headers:allCols(db).map(function(c){ return c.key; })})});
   buildHeader(); renderTable();
   closeModal("schema-modal"); toast("Columns saved for "+db.name,"ok");
 }
 
 function saveMasterSchema(){
-  const allC=getAllMasterCols();
-  masterHiddenCols=allC.filter(c=>{ const el=document.getElementById("mcol_"+c.key); return el&&!el.checked; }).map(c=>c.key);
+  var allC=getAllMasterCols();
+  masterHiddenCols=allC.filter(function(c){ var el=document.getElementById("mcol_"+c.key); return el&&!el.checked; }).map(function(c){ return c.key; });
   localStorage.setItem("dh_master_hidden",JSON.stringify(masterHiddenCols));
   closeModal("schema-modal"); renderMasterTable(); toast("Master View columns updated.","ok");
 }
 
 // ── NEW DATABASE ──────────────────────────────────────────────────────────────
-function buildIconGrid(){ const el=document.getElementById("icon-grid"); el.innerHTML=""; ICONS.forEach(ic=>{ const d=document.createElement("div"); d.className="icon-opt"+(ic===selectedIcon?" selected":""); d.textContent=ic; d.onclick=()=>{ selectedIcon=ic; buildIconGrid(); }; el.appendChild(d); }); }
-function buildColorGrid(){ const el=document.getElementById("color-grid"); el.innerHTML=""; COLORS.forEach(c=>{ const d=document.createElement("div"); d.className="color-opt"+(c===selectedColor?" selected":""); d.style.background=c; d.onclick=()=>{ selectedColor=c; buildColorGrid(); }; el.appendChild(d); }); }
+function buildIconGrid(){
+  var el=document.getElementById("icon-grid"); el.innerHTML="";
+  ICONS.forEach(function(ic){
+    var d=document.createElement("div"); d.className="icon-opt"+(ic===selectedIcon?" selected":"");
+    d.textContent=ic; d.onclick=function(){ selectedIcon=ic; buildIconGrid(); }; el.appendChild(d);
+  });
+}
+function buildColorGrid(){
+  var el=document.getElementById("color-grid"); el.innerHTML="";
+  COLORS.forEach(function(c){
+    var d=document.createElement("div"); d.className="color-opt"+(c===selectedColor?" selected":"");
+    d.style.background=c; d.onclick=function(){ selectedColor=c; buildColorGrid(); }; el.appendChild(d);
+  });
+}
 function openNewDbModal(){ document.getElementById("db-dropdown").classList.remove("open"); document.getElementById("new-db-modal").classList.add("open"); }
 
 function createDatabase(){
-  const name=document.getElementById("new-db-name").value.trim(); const desc=document.getElementById("new-db-desc").value.trim();
+  var name=document.getElementById("new-db-name").value.trim();
+  var desc=document.getElementById("new-db-desc").value.trim();
   if(!name){ toast("Please enter a database name.","err"); return; }
-  const id="db_"+Date.now();
-  databases.push({id,name,desc,icon:selectedIcon,color:selectedColor,schema:[{key:"notes",label:"Notes",type:"text"}],rows:[]});
-  saveConfig(); // Save to Google Sheets so all team members see the new database
+  var id="db_"+Date.now();
+  databases.push({id:id,name:name,desc:desc,icon:selectedIcon,color:selectedColor,schema:[{key:"notes",label:"Notes",type:"text"}],rows:[]});
+  saveConfig();
   closeModal("new-db-modal");
   document.getElementById("new-db-name").value=""; document.getElementById("new-db-desc").value="";
-  selectDb(id); toast(`"${name}" created and shared with your team!`,"ok");
+  selectDb(id); toast('"'+name+'" created and shared with your team!',"ok");
 }
 
 function confirmDeleteDb(){
-  const db=getDb(); if(!db) return;
-  if(!confirm(`Delete "${db.name}"? This cannot be undone.`)) return;
-  databases=databases.filter(d=>d.id!==currentDbId);
-  saveConfig(); // Save updated structure to Google Sheets
+  var db=getDb(); if(!db) return;
+  if(!confirm('Delete "'+db.name+'"? This cannot be undone.')) return;
+  databases=databases.filter(function(d){ return d.id!==currentDbId; });
+  saveConfig();
   if(databases.length>0) selectDb(databases[0].id); else selectMasterView();
   renderDbList(); toast("Database deleted.","ok");
 }
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
 function exportCSV(){
-  const cols=isMasterView?getMasterCols():allCols(getDb());
-  const data=isMasterView?masterRows:(getDb().rows||[]);
-  const lines=[cols.map(c=>`"${c.label}"`).join(","),...data.map(row=>cols.map(c=>`"${String(row[c.key]||"").replace(/"/g,'""')}"`).join(","))];
-  const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=isMasterView?"master-list.csv":`${getDb().name}.csv`; a.click(); toast("CSV exported.","ok");
+  var cols=isMasterView?getMasterCols():allCols(getDb());
+  var data=isMasterView?masterRows:(getDb().rows||[]);
+  var lines=[cols.map(function(c){ return '"'+c.label+'"'; }).join(",")].concat(
+    data.map(function(row){ return cols.map(function(c){ return '"'+String(row[c.key]||"").replace(/"/g,'""')+'"'; }).join(","); })
+  );
+  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=isMasterView?"master-list.csv":(getDb().name+".csv"); a.click();
+  toast("CSV exported.","ok");
 }
 
 function importCSV(e){
   if(isMasterView){ toast("Please select a specific database to import into.","err"); e.target.value=""; return; }
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=async ev=>{
-    const lines=ev.target.result.trim().split("\n").map(l=>l.trim()).filter(Boolean);
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var lines=ev.target.result.trim().split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
     if(lines.length<2){ toast("CSV appears empty.","err"); return; }
-    const parseRow=line=>{ const cells=[]; let cur="",inQ=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){cells.push(cur.trim());cur="";}else cur+=ch; } cells.push(cur.trim()); return cells; };
-    const db=getDb(); const cols=allCols(db);
-    const headers=parseRow(lines[0]).map(h=>h.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,""));
-    const imported=lines.slice(1).map(line=>{ const cells=parseRow(line); const row=Object.fromEntries(cols.map(c=>[c.key,""])); headers.forEach((h,i)=>{ const match=cols.find(c=>c.key===h||c.label.toLowerCase().replace(/\s+/g,"_")===h); if(match) row[match.key]=cells[i]||""; }); return row; });
-    db.rows.push(...imported);
-    for(let i=0;i<imported.length;i++) await saveRowToSheet(imported[i],db.rows.length-imported.length+i,db.name);
-    renderTable(); renderDbList(); toast(`Imported ${imported.length} row(s).`,"ok"); e.target.value="";
+    function parseRow(line){ var cells=[],cur="",inQ=false; for(var i=0;i<line.length;i++){ var ch=line[i]; if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){cells.push(cur.trim());cur="";}else cur+=ch; } cells.push(cur.trim()); return cells; }
+    var db=getDb(); var cols=allCols(db);
+    var headers=parseRow(lines[0]).map(function(h){ return h.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,""); });
+    var imported=lines.slice(1).map(function(line){
+      var cells=parseRow(line); var row={};
+      cols.forEach(function(c){ row[c.key]=""; });
+      headers.forEach(function(h,i){
+        var match=cols.find(function(c){ return c.key===h||c.label.toLowerCase().replace(/\s+/g,"_")===h; });
+        if(match) row[match.key]=cells[i]||"";
+      });
+      return row;
+    });
+    imported.forEach(function(row,i){ db.rows.push(row); saveRowToSheet(row,db.rows.length-1,db.name); });
+    renderTable(); renderDbList(); toast("Imported "+imported.length+" row(s).","ok"); e.target.value="";
   };
   reader.readAsText(file);
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function closeModal(id){ document.getElementById(id).classList.remove("open"); }
-function strColor(str){ const c=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"]; let h=0; for(let i=0;i<str.length;i++) h=str.charCodeAt(i)+((h<<5)-h); return c[Math.abs(h)%c.length]; }
+function strColor(str){ var c=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"]; var h=0; for(var i=0;i<str.length;i++) h=str.charCodeAt(i)+((h<<5)-h); return c[Math.abs(h)%c.length]; }
 </script>
 </body>
 </html>
