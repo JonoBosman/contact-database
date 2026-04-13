@@ -361,10 +361,16 @@ window.onload = function() {
   buildColorGrid();
   scriptUrl = localStorage.getItem("dh_script_url") || "";
   if(scriptUrl){
+    // URL exists — hide banner and load
     document.getElementById("setup-banner").style.display="none";
     loadConfig();
   } else {
+    // No URL — show banner immediately, never show loading screen
     hideLoadingScreen();
+    document.getElementById("setup-banner").style.display="flex";
+    databases=[];
+    renderDbList();
+    selectMasterView();
   }
 };
 
