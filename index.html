@@ -394,18 +394,17 @@ async function loadConfig(){
     const data=await res.json();
     if(data.error) throw new Error(data.error);
     if(data.databases&&data.databases.length>0){
-      // Restore rows array on each db (rows are loaded separately per sheet)
       databases=data.databases.map(db=>({...db,rows:db.rows||[]}));
       toast("Databases loaded from Google Sheets.","ok");
     } else {
-      // No config yet — use defaults and save them
-      databases=getDefaultDatabases();
-      await saveConfig();
-      toast("First time setup — databases saved to Google Sheets.","ok");
+      // No config yet — start completely empty, do NOT save defaults
+      databases=[];
+      toast("No databases found. Create your first database to get started.","info");
     }
   }catch(e){
-    databases=getDefaultDatabases();
-    toast("Could not load config: "+e.message+". Using defaults.","err");
+    // On error start empty rather than loading hardcoded defaults
+    databases=[];
+    toast("Could not load config: "+e.message,"err");
   }
   hideLoadingScreen();
   renderDbList(); selectMasterView();
@@ -432,7 +431,7 @@ async function saveScriptUrl(){
 }
 function dismissBanner(){
   document.getElementById("setup-banner").style.display="none";
-  databases=getDefaultDatabases();
+  databases=[];
   renderDbList(); selectMasterView();
 }
 
