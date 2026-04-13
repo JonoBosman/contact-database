@@ -183,7 +183,7 @@ tbody tr:hover td.master-col-td,tbody tr.editing-row td.master-col-td{background
 </div>
 
 <!-- SETUP BANNER -->
-<div id="setup-banner" style="display:none">
+<div id="setup-banner">
   <strong>⚙️ Connect to Google Sheets:</strong>
   <input type="text" id="script-url-input" placeholder="Paste your Google Apps Script Web App URL here…"/>
   <button class="btn btn-primary" onclick="saveScriptUrl()">💾 Save & Connect</button>
@@ -366,12 +366,13 @@ window.onload=async()=>{
   // Re-read scriptUrl fresh from localStorage at load time
   scriptUrl = localStorage.getItem("dh_script_url") || "";
   if(scriptUrl){
+    // URL exists — hide banner and load config
+    document.getElementById("setup-banner").style.display="none";
     await loadConfig();
   } else {
-    // No script URL — always show setup banner
+    // No URL — keep banner visible, show empty app
     hideLoadingScreen();
-    document.getElementById("setup-banner").style.display="flex";
-    databases=getDefaultDatabases();
+    databases=[];
     renderDbList(); selectMasterView();
   }
 };
@@ -522,7 +523,8 @@ function selectMasterView(){
   document.getElementById("delete-db-item").style.display="none";
   document.getElementById("filter-bar").classList.add("hidden");
   renderFilterChips(); renderDbList();
-  if(scriptUrl) loadMasterView(); else buildMasterFromLocal();
+  // Build master from already-loaded local data rather than fetching again
+  buildMasterFromLocal();
 }
 
 function selectDb(id){
