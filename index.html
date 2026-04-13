@@ -349,7 +349,7 @@ let masterHiddenCols=JSON.parse(localStorage.getItem("dh_master_hidden")||"[]");
 let editCell=null;
 let savingCell=null;
 let sortConfig={key:null,dir:"asc"};
-let scriptUrl=localStorage.getItem("dh_script_url")||"";
+let scriptUrl="";
 let selectedIcon=ICONS[0],selectedColor=COLORS[0];
 let tempSchemaFields=[];
 let activeFilters=[];
@@ -363,10 +363,12 @@ window.onload=async()=>{
     if(!e.target.closest(".filter-bar-wrap")&&!e.target.closest("#filter-popup")) document.getElementById("filter-popup").style.display="none";
   });
   buildIconGrid(); buildColorGrid();
+  // Re-read scriptUrl fresh from localStorage at load time
+  scriptUrl = localStorage.getItem("dh_script_url") || "";
   if(scriptUrl){
     await loadConfig();
   } else {
-    // No script URL yet — show setup banner with empty state
+    // No script URL — always show setup banner
     hideLoadingScreen();
     document.getElementById("setup-banner").style.display="flex";
     databases=getDefaultDatabases();
