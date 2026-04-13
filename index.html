@@ -379,9 +379,20 @@ function setLoadingMsg(msg){
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 function loadConfig(){
   setLoadingMsg("Loading database structure…");
+  // Safety timeout — never stay stuck more than 10 seconds
+  var timeout=setTimeout(function(){
+    console.warn("Config load timed out — showing app anyway");
+    databases=[];
+    toast("Connection timed out. Check your Apps Script URL.","err");
+    hideLoadingScreen();
+    document.getElementById("setup-banner").style.display="flex";
+    renderDbList();
+    selectMasterView();
+  },10000);
   fetch(scriptUrl+"?action=get&sheet=_Config")
     .then(function(r){ return r.json(); })
     .then(function(data){
+      clearTimeout(timeout);
       if(data.error) throw new Error(data.error);
       if(data.databases && data.databases.length>0){
         databases = data.databases.map(function(db){ return Object.assign({},db,{rows:[]}); });
@@ -396,9 +407,11 @@ function loadConfig(){
       }
     })
     .catch(function(e){
+      clearTimeout(timeout);
       databases=[];
       toast("Could not load config: "+e.message,"err");
       hideLoadingScreen();
+      document.getElementById("setup-banner").style.display="flex";
       renderDbList();
       selectMasterView();
     });
