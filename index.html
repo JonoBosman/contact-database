@@ -153,7 +153,19 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 <body>
 <div id="toast-container"></div>
 
-<!-- SETUP BANNER — always visible until URL saved -->
+<!-- LOADING SCREEN -->
+<div id="loading-screen" style="display:none;position:fixed;inset:0;background:#1e293b;z-index:9999;flex-direction:column;align-items:center;justify-content:center;color:#fff">
+  <div style="font-size:32px;font-weight:700;margin-bottom:12px">Data<span style="color:#6366f1">Hub</span></div>
+  <p id="loading-msg" style="font-size:14px;color:#94a3b8;margin-bottom:24px">Loading your databases…</p>
+  <div style="width:200px;height:4px;background:#334155;border-radius:2px;overflow:hidden">
+    <div style="height:100%;background:#6366f1;border-radius:2px;animation:loadBar 1.5s ease infinite"></div>
+  </div>
+</div>
+<style>
+@keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+</style>
+
+<!-- SETUP BANNER — only shown when no URL saved -->
 <div id="setup-banner">
   <strong>⚙️ Connect to Google Sheets:</strong>
   <input type="text" id="url-input" placeholder="Paste your Google Apps Script Web App URL here…"/>
@@ -322,23 +334,24 @@ window.onload=function(){
 
 // ─── STARTUP — loads config then all rows ─────────────────────────────────────
 function startup(){
-  showToast("Connecting to Google Sheets…","info");
   gGet("_Config",function(data){
     if(!data||data.error||!data.databases||!data.databases.length){
       DBS=[];
+      hideLoadingScreen();
       showToast("No databases found. Create your first one.","info");
       renderAll(); goMaster(); return;
     }
     DBS=data.databases.map(function(d){ return Object.assign({},d,{rows:[]}); });
-    // Now load all sheets
+    document.getElementById("loading-msg").textContent="Loading records from "+DBS.length+" databases…";
     var done=0;
     DBS.forEach(function(db){
       gGet(db.name,function(d){
         db.rows=(!d||d.error)?[]:(d.rows||[]);
         done++;
+        document.getElementById("loading-msg").textContent="Loaded "+done+" of "+DBS.length+" databases…";
         if(done===DBS.length){
-          // All loaded — build master and show app
           buildMVrows();
+          hideLoadingScreen();
           renderAll();
           goMaster();
           showToast("Loaded "+MVrows.length+" records across "+DBS.length+" databases.","ok");
@@ -885,6 +898,7 @@ window.connectSheet=function(){
   if(!v.startsWith("https://script.google.com")){ showToast("Invalid URL.","err"); return; }
   sUrl=v; localStorage.setItem(URL_KEY,sUrl);
   document.getElementById("setup-banner").style.display="none";
+  showLoadingScreen("Connecting to Google Sheets…");
   startup();
 };
 </script>
