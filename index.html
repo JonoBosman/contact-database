@@ -11,6 +11,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;min-height:1
 .toast{background:#1e293b;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;min-width:220px;animation:slideIn .25s ease}
 .toast.ok{border-left:4px solid #10b981}.toast.err{border-left:4px solid #ef4444}.toast.info{border-left:4px solid #6366f1}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+#loading-screen{position:fixed;inset:0;background:#1e293b;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#loading-screen .ls-logo{font-size:32px;font-weight:700;margin-bottom:12px}
+#loading-screen .ls-logo span{color:#6366f1}
+#loading-screen p{font-size:14px;color:#94a3b8;margin-bottom:24px}
+#loading-screen .ls-bar{width:200px;height:4px;background:#334155;border-radius:2px;overflow:hidden}
+#loading-screen .ls-bar-inner{height:100%;background:#6366f1;border-radius:2px;animation:loadBar 1.5s ease infinite}
 #setup-banner{background:#fef9c3;border-bottom:2px solid #fde68a;padding:12px 24px;font-size:13px;color:#78350f;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #setup-banner input{flex:1;min-width:240px;padding:6px 10px;border:1px solid #fcd34d;border-radius:6px;font-size:13px}
 .topnav{background:#1e293b;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:100}
@@ -153,8 +160,15 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 <body>
 <div id="toast-container"></div>
 
-<!-- SETUP BANNER — always visible until URL saved -->
-<div id="setup-banner">
+<!-- LOADING SCREEN — only shown when URL already saved -->
+<div id="loading-screen">
+  <div class="ls-logo">Data<span>Hub</span></div>
+  <p id="ls-msg">Loading your databases…</p>
+  <div class="ls-bar"><div class="ls-bar-inner"></div></div>
+</div>
+
+<!-- SETUP BANNER — only shown when no URL saved -->
+<div id="setup-banner" style="display:none">
   <strong>⚙️ Connect to Google Sheets:</strong>
   <input type="text" id="url-input" placeholder="Paste your Google Apps Script Web App URL here…"/>
   <button class="btn btn-g" onclick="connectSheet()">💾 Save & Connect</button>
@@ -303,6 +317,16 @@ var tmpSchema=[];
 var filters=[];
 var panelDbId=null;
 
+// ─── LOADING SCREEN HELPERS ───────────────────────────────────────────────────
+function showLoading(msg){
+  var ls=document.getElementById("loading-screen");
+  ls.style.display="flex";
+  document.getElementById("ls-msg").textContent=msg||"Loading your databases…";
+}
+function hideLoading(){
+  document.getElementById("loading-screen").style.display="none";
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload=function(){
   buildIconGrid(); buildColorGrid();
@@ -313,32 +337,36 @@ window.onload=function(){
   });
   sUrl=localStorage.getItem(URL_KEY)||"";
   if(sUrl){
+    // URL saved — show loading screen, hide banner
+    showLoading("Loading your databases…");
     document.getElementById("setup-banner").style.display="none";
-    document.getElementById("url-input").value=sUrl;
     startup();
+  } else {
+    // No URL — hide loading screen, show banner
+    hideLoading();
+    document.getElementById("setup-banner").style.display="flex";
   }
-  // If no URL, banner is already visible — user pastes URL and clicks connect
 };
 
-// ─── STARTUP — loads config then all rows ─────────────────────────────────────
+// ─── STARTUP ──────────────────────────────────────────────────────────────────
 function startup(){
-  showToast("Connecting to Google Sheets…","info");
   gGet("_Config",function(data){
     if(!data||data.error||!data.databases||!data.databases.length){
       DBS=[];
+      hideLoading();
       showToast("No databases found. Create your first one.","info");
       renderAll(); goMaster(); return;
     }
     DBS=data.databases.map(function(d){ return Object.assign({},d,{rows:[]}); });
-    // Now load all sheets
     var done=0;
     DBS.forEach(function(db){
       gGet(db.name,function(d){
         db.rows=(!d||d.error)?[]:(d.rows||[]);
         done++;
+        document.getElementById("ls-msg").textContent="Loaded "+done+" of "+DBS.length+" databases…";
         if(done===DBS.length){
-          // All loaded — build master and show app
           buildMVrows();
+          hideLoading();
           renderAll();
           goMaster();
           showToast("Loaded "+MVrows.length+" records across "+DBS.length+" databases.","ok");
@@ -368,6 +396,7 @@ function saveConfig(){
 
 function refresh(){
   if(isMV){
+    showLoading("Refreshing…");
     DBS.forEach(function(db){ db.rows=[]; });
     startup();
   } else {
@@ -382,17 +411,15 @@ function connectSheet(){
   if(!v.startsWith("https://script.google.com")){ showToast("Invalid URL — please check and try again.","err"); return; }
   sUrl=v; localStorage.setItem(URL_KEY,sUrl);
   document.getElementById("setup-banner").style.display="none";
+  showLoading("Connecting to Google Sheets…");
   startup();
 }
-// Alias for HTML onclick
-function connectSheet(){ // already defined above — just point button to it
-  var v=document.getElementById("url-input").value.trim();
-  if(!v.startsWith("https://script.google.com")){ showToast("Invalid URL.","err"); return; }
-  sUrl=v; localStorage.setItem(URL_KEY,sUrl);
+
+function useOffline(){
   document.getElementById("setup-banner").style.display="none";
-  startup();
+  hideLoading();
+  DBS=[]; renderAll(); goMaster();
 }
-function useOffline(){ document.getElementById("setup-banner").style.display="none"; DBS=[]; renderAll(); goMaster(); }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg,type){
@@ -533,7 +560,6 @@ function renderMV(){
   rows=applyFilters(rows);
   if(sortCfg.key) rows.sort(function(a,b){ var av=a[sortCfg.key]||"",bv=b[sortCfg.key]||""; return sortCfg.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
   document.getElementById("t-cnt").textContent=rows.length+" of "+MVrows.length+" records";
-
   var thead=document.getElementById("thead"); thead.innerHTML="";
   var htr=document.createElement("tr"); htr.className="mvh";
   cs.forEach(function(c){
@@ -544,7 +570,6 @@ function renderMV(){
     htr.appendChild(th);
   });
   var ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath); thead.appendChild(htr);
-
   var tbody=document.getElementById("tbody"); tbody.innerHTML="";
   if(!rows.length){ emptyState(tbody,cs.length+1,"🌐","No records","Try adjusting search or filters."); return; }
   rows.forEach(function(row){
@@ -829,7 +854,7 @@ function createDB(){
   saveConfig();
   closeModal("new-db-modal");
   document.getElementById("ndb-name").value=""; document.getElementById("ndb-desc").value="";
-  selectDB(id); showToast('"'+name+'" created!', "ok");
+  selectDB(id); showToast('"'+name+'" created!',"ok");
 }
 
 function deleteDB(){
@@ -878,15 +903,6 @@ function importCSV(e){
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 function closeModal(id){ document.getElementById(id).classList.remove("open"); }
 function strColor(s){ var c=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"]; var h=0; for(var i=0;i<s.length;i++) h=s.charCodeAt(i)+((h<<5)-h); return c[Math.abs(h)%c.length]; }
-
-// Fix duplicate function name
-window.connectSheet=function(){
-  var v=document.getElementById("url-input").value.trim();
-  if(!v.startsWith("https://script.google.com")){ showToast("Invalid URL.","err"); return; }
-  sUrl=v; localStorage.setItem(URL_KEY,sUrl);
-  document.getElementById("setup-banner").style.display="none";
-  startup();
-};
 </script>
 </body>
 </html>
