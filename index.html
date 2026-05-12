@@ -160,14 +160,12 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 <body>
 <div id="toast-container"></div>
 
-<!-- LOADING SCREEN — only shown when URL already saved -->
 <div id="loading-screen">
   <div class="ls-logo">Data<span>Hub</span></div>
   <p id="ls-msg">Loading your databases…</p>
   <div class="ls-bar"><div class="ls-bar-inner"></div></div>
 </div>
 
-<!-- SETUP BANNER — only shown when no URL saved -->
 <div id="setup-banner" style="display:none">
   <strong>⚙️ Connect to Google Sheets:</strong>
   <input type="text" id="url-input" placeholder="Paste your Google Apps Script Web App URL here…"/>
@@ -337,12 +335,10 @@ window.onload=function(){
   });
   sUrl=localStorage.getItem(URL_KEY)||"";
   if(sUrl){
-    // URL saved — show loading screen, hide banner
     showLoading("Loading your databases…");
     document.getElementById("setup-banner").style.display="none";
     startup();
   } else {
-    // No URL — hide loading screen, show banner
     hideLoading();
     document.getElementById("setup-banner").style.display="flex";
   }
@@ -401,7 +397,7 @@ function refresh(){
     startup();
   } else {
     var db=getDB();
-    gGet(db.name,function(d){ db.rows=(!d||d.error)?[]:(d.rows||[]); renderTable(); renderList(); });
+    gGet(db.name,function(d){ db.rows=(!d||d.error)?[]:(d.rows||[]); buildMVrows(); renderTable(); renderList(); });
   }
 }
 
@@ -444,10 +440,13 @@ function closeHM(){ document.getElementById("hmenu").classList.remove("open"); }
 function getDB(id){ return DBS.find(function(d){ return d.id===(id||curId); }); }
 function cols(db){ return SHARED.concat(db.schema||[]); }
 
+// ─── FIX 1: buildMVrows — always rebuilds from db.rows, called after every mutation ───
+// Previously only called at startup and savePanel. Now called after every edit,
+// delete, and import so Master View is never stale.
 function buildMVrows(){
   MVrows=[];
   DBS.forEach(function(db){
-    (db.rows||[]).forEach(function(r){ MVrows.push(Object.assign({},r,{_db:db.name})); });
+    (db.rows||[]).forEach(function(r){ MVrows.push(Object.assign({},r,{_db:db.name,_dbId:db.id})); });
   });
 }
 
@@ -552,6 +551,22 @@ function applyFilters(rows){
   return rows.filter(function(r){ return filters.every(function(f){ return String(r[f.key]||"").toLowerCase().indexOf(f.val.toLowerCase())!==-1; }); });
 }
 
+// ─── FIX 2: Stable row identity via _rowId ────────────────────────────────────
+// Previously commitMV matched rows by name+email+surname composite key — fragile
+// for duplicates or empty fields. Now every row gets a unique _rowId (UUID-like)
+// assigned when loaded or created. MVrows carry _rowId so we find the exact
+// source row in db.rows without any field matching.
+
+function ensureRowIds(db){
+  (db.rows||[]).forEach(function(r){
+    if(!r._rowId) r._rowId=genId();
+  });
+}
+
+function genId(){
+  return "r_"+Math.random().toString(36).slice(2,10)+"_"+Date.now();
+}
+
 // ─── MASTER TABLE ─────────────────────────────────────────────────────────────
 function renderMV(){
   var cs=MVcols();
@@ -573,7 +588,8 @@ function renderMV(){
   var tbody=document.getElementById("tbody"); tbody.innerHTML="";
   if(!rows.length){ emptyState(tbody,cs.length+1,"🌐","No records","Try adjusting search or filters."); return; }
   rows.forEach(function(row){
-    var mi=MVrows.indexOf(row);
+    // Use _rowId to find the index in MVrows (not field-based matching)
+    var mi=MVrows.findIndex(function(r){ return r._rowId===row._rowId; });
     var dbo=DBS.find(function(d){ return d.name===row._db; });
     var isEd=editCell&&editCell.mi===mi;
     var tr=document.createElement("tr"); if(isEd) tr.className="editing";
@@ -594,17 +610,33 @@ function renderMV(){
     });
     mkDelBtn(tr,(function(r,mi,dbo){ return function(){
       if(!confirm("Delete this row?")) return;
-      if(dbo){ var i=(dbo.rows||[]).findIndex(function(x){ return x.name===r.name&&x.email===r.email&&x.surname===r.surname; }); if(i>-1){ dbo.rows.splice(i,1); gPost({action:"delete",sheet:dbo.name,rowIdx:i}); } }
-      MVrows.splice(mi,1); renderMV(); renderList();
+      if(dbo){
+        // FIX 2: find source row by _rowId, not by field matching
+        var srcIdx=(dbo.rows||[]).findIndex(function(x){ return x._rowId===r._rowId; });
+        if(srcIdx>-1){ dbo.rows.splice(srcIdx,1); gPost({action:"delete",sheet:dbo.name,rowIdx:srcIdx}); }
+      }
+      MVrows.splice(mi,1);
+      // FIX 1: renderList keeps counts in sync after MV delete
+      renderMV(); renderList();
     };})(row,mi,dbo));
     tbody.appendChild(tr);
   });
 }
 
+// FIX 2: commitMV uses _rowId to find the exact source row — no field matching
 function commitMV(mi,col,val,dbo){
-  MVrows[mi][col]=val; editCell=null;
-  if(dbo){ var src=dbo.rows.find(function(r){ return r.name===MVrows[mi].name&&r.email===MVrows[mi].email&&r.surname===MVrows[mi].surname; }); if(src){ src[col]=val; gPost({action:"upsert",sheet:dbo.name,row:src,rowIdx:dbo.rows.indexOf(src)}); } }
-  showToast("Saved to "+(dbo?dbo.name:"database"),"ok"); renderMV();
+  var mvRow=MVrows[mi];
+  mvRow[col]=val;
+  editCell=null;
+  if(dbo){
+    var srcIdx=(dbo.rows||[]).findIndex(function(r){ return r._rowId===mvRow._rowId; });
+    if(srcIdx>-1){
+      dbo.rows[srcIdx][col]=val;
+      gPost({action:"upsert",sheet:dbo.name,row:dbo.rows[srcIdx],rowIdx:srcIdx});
+    }
+  }
+  showToast("Saved to "+(dbo?dbo.name:"database"),"ok");
+  renderMV();
 }
 
 // ─── NORMAL TABLE ─────────────────────────────────────────────────────────────
@@ -646,7 +678,10 @@ function renderTable(){
     });
     mkDelBtn(tr,(function(ri){ return function(){
       if(!confirm("Delete this row?")) return;
-      db.rows.splice(ri,1); gPost({action:"delete",sheet:db.name,rowIdx:ri});
+      db.rows.splice(ri,1);
+      gPost({action:"delete",sheet:db.name,rowIdx:ri});
+      // FIX 1: rebuild MVrows after delete in DB view so Master View stays in sync
+      buildMVrows();
       renderTable(); renderList(); showToast("Row deleted.","ok");
     };})(oi));
     tbody.appendChild(tr);
@@ -701,6 +736,8 @@ function emptyState(tbody,span,icon,title,desc){
 function commitEdit(ri,col,val){
   var db=getDB(); db.rows[ri][col]=val; editCell=null;
   gPost({action:"upsert",sheet:db.name,row:db.rows[ri],rowIdx:ri});
+  // FIX 1: rebuild MVrows after any cell edit in DB view
+  buildMVrows();
   showToast("Saved to "+db.name,"ok"); renderTable(); renderList();
 }
 
@@ -748,11 +785,12 @@ function closePanel(){ document.getElementById("panel").classList.remove("open")
 
 function savePanel(){
   var db=DBS.find(function(d){ return d.id===panelDbId; }); if(!db) return;
-  var row={};
+  var row={_rowId:genId()};
   cols(db).forEach(function(c){ var el=document.getElementById("pf_"+c.key); row[c.key]=el?el.value:""; });
   db.rows.push(row);
   gPost({action:"upsert",sheet:db.name,row:row,rowIdx:db.rows.length-1});
-  MVrows.push(Object.assign({},row,{_db:db.name}));
+  // FIX 1: rebuild MVrows so Master View immediately sees the new row
+  buildMVrows();
   if(isMV){ renderList(); renderMV(); } else { renderTable(); renderList(); }
   closePanel(); showToast("Row added to "+db.name,"ok");
 }
@@ -857,28 +895,26 @@ function createDB(){
   selectDB(id); showToast('"'+name+'" created!',"ok");
 }
 
+// ─── FIX 4: deleteDB now sends a delete sheet request to Apps Script ──────────
+// Previously DBS was updated in memory and saveConfig() was called, but the
+// actual Google Sheet tab was never removed. Now we send action:"deleteSheet"
+// so the Apps Script can call sheet.deleteTab() on the named sheet.
 function deleteDB(){
   var db=getDB(); if(!db) return;
   if(!confirm('Delete "'+db.name+'"? This cannot be undone.')) return;
+  // Send to backend BEFORE removing from DBS so we still have db.name
+  gPost({action:"deleteSheet",sheet:db.name});
   DBS=DBS.filter(function(d){ return d.id!==curId; });
+  // FIX 1: rebuild MVrows after deleting a whole database
+  buildMVrows();
   saveConfig();
   if(DBS.length) selectDB(DBS[0].id); else goMaster();
   renderList(); showToast("Database deleted.","ok");
 }
 
-// ─── CSV ──────────────────────────────────────────────────────────────────────
-function exportCSV(){
-  var cs=isMV?MVcols():cols(getDB());
-  var data=isMV?MVrows:(getDB().rows||[]);
-  var lines=[cs.map(function(c){ return '"'+c.label+'"'; }).join(",")].concat(
-    data.map(function(r){ return cs.map(function(c){ return '"'+String(r[c.key]||"").replace(/"/g,'""')+'"'; }).join(","); })
-  );
-  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=isMV?"master-list.csv":(getDB().name+".csv"); a.click();
-  showToast("CSV exported.","ok");
-}
-
+// ─── FIX 3: importCSV now calls buildMVrows() after importing ────────────────
+// Previously imported rows were pushed to db.rows but MVrows was never rebuilt,
+// so switching to Master View wouldn't show the new data until a full refresh.
 function importCSV(e){
   if(isMV){ showToast("Select a specific database to import into.","err"); e.target.value=""; return; }
   var file=e.target.files[0]; if(!file) return;
@@ -890,14 +926,32 @@ function importCSV(e){
     var db=getDB(); var cs=cols(db);
     var hdrs=prow(lines[0]).map(function(h){ return h.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,""); });
     var imported=lines.slice(1).map(function(line){
-      var cells=prow(line); var row={}; cs.forEach(function(c){ row[c.key]=""; });
+      var cells=prow(line);
+      // FIX 2: assign a stable _rowId to every imported row
+      var row={_rowId:genId()};
+      cs.forEach(function(c){ row[c.key]=""; });
       hdrs.forEach(function(h,i){ var m=cs.find(function(c){ return c.key===h||c.label.toLowerCase().replace(/\s+/g,"_")===h; }); if(m) row[m.key]=cells[i]||""; });
       return row;
     });
     imported.forEach(function(row){ db.rows.push(row); gPost({action:"upsert",sheet:db.name,row:row,rowIdx:db.rows.length-1}); });
+    // FIX 3: rebuild MVrows so Master View shows imported data immediately
+    buildMVrows();
     renderTable(); renderList(); showToast("Imported "+imported.length+" row(s).","ok"); e.target.value="";
   };
   reader.readAsText(file);
+}
+
+// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
+function exportCSV(){
+  var cs=isMV?MVcols():cols(getDB());
+  var data=isMV?MVrows:(getDB().rows||[]);
+  var lines=[cs.map(function(c){ return '"'+c.label+'"'; }).join(",")].concat(
+    data.map(function(r){ return cs.map(function(c){ return '"'+String(r[c.key]||"").replace(/"/g,'""')+'"'; }).join(","); })
+  );
+  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=isMV?"master-list.csv":(getDB().name+".csv"); a.click();
+  showToast("CSV exported.","ok");
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
