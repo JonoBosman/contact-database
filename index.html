@@ -70,6 +70,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;min-height:1
 .btn{border:none;border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .btn:hover{opacity:.88}
 .btn-g{background:#10b981;color:#fff}.btn-b{background:#0ea5e9;color:#fff}
+.btn-r{background:#ef4444;color:#fff}
 .btn-gh{background:#f1f5f9;color:#475569}
 .fl{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;background:#f59e0b;color:#fff}
 .fl input{display:none}
@@ -89,7 +90,7 @@ thead tr{background:#1e293b;color:#e2e8f0}
 thead tr.mvh{background:#4c1d95}
 th{padding:10px 14px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
 th:hover{background:#334155}
-th.mvcol{background:#5b21b6;position:sticky;left:0;z-index:10}
+th.mvcol{background:#5b21b6;position:sticky;left:0;z-index:10;cursor:default}
 tbody tr{border-bottom:1px solid #f1f5f9}
 tbody tr:hover{background:#f8fafc}
 tbody tr.editing{background:#eff6ff!important;outline:2px solid #6366f1;outline-offset:-2px}
@@ -102,7 +103,10 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 .cell.empty span.ct{color:#cbd5e1;font-style:italic;font-size:11px}
 .cell input,.cell select{width:100%;padding:6px 10px;border:2px solid #6366f1;outline:none;font-size:13px;background:#eef2ff;border-radius:5px}
 .badge{color:#fff;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
-.src-badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:4px}
+/* ── Multi-source badge cell ── */
+.src-badges{display:flex;flex-wrap:wrap;gap:4px;padding:6px 12px;min-height:38px;align-items:center;min-width:140px;max-width:260px}
+.src-badge{padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.merged-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.7);display:inline-block;flex-shrink:0}
 .empty-state{text-align:center;padding:60px 24px;color:#94a3b8}
 .ei{font-size:48px;margin-bottom:12px}
 .et{font-size:16px;font-weight:700;color:#1e293b;margin-bottom:6px}
@@ -149,6 +153,14 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9}
 .vrow{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:6px;border:1px solid #e2e8f0}
 .vrow-l{display:flex;align-items:center;gap:8px}
+/* ── MV Delete modal ── */
+.del-src-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;background:#f8fafc}
+.del-src-item label{display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;font-size:13px;font-weight:500;color:#1e293b}
+.del-src-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#ef4444;flex-shrink:0}
+.del-warn{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;color:#991b1b;margin-bottom:16px;line-height:1.5}
+.del-divider{text-align:center;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:12px 0;position:relative}
+.del-divider::before{content:'';position:absolute;left:0;top:50%;width:40%;height:1px;background:#e2e8f0}
+.del-divider::after{content:'';position:absolute;right:0;top:50%;width:40%;height:1px;background:#e2e8f0}
 .footer{padding:8px 24px;background:#fff;border-top:1px solid #f1f5f9;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between}
 @media(max-width:700px){
   .topnav{padding:0 12px}.db-btn{min-width:160px;font-size:12px}
@@ -189,7 +201,7 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
         <div class="dd-hdr">Your Databases</div>
         <div class="db-item mv" id="mv-item" onclick="goMaster()">
           <div class="db-icon" style="background:#ede9fe">🌐</div>
-          <div class="db-info"><div class="db-name">Master View <span class="mv-badge">ALL</span></div><div class="db-desc">Combined view of all databases</div></div>
+          <div class="db-info"><div class="db-name">Master View <span class="mv-badge">ALL</span></div><div class="db-desc">Deduplicated contacts across all databases</div></div>
           <span class="db-cnt" id="mv-cnt">0</span>
         </div>
         <hr class="dd-div"/>
@@ -215,7 +227,7 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 
 <div class="mv-banner" id="mv-banner" style="display:none">
   <strong>🌐 Master View</strong>
-  <span style="opacity:.8;font-size:12px">Showing all records across every database. Edits save back to the correct database automatically.</span>
+  <span style="opacity:.8;font-size:12px">Unique contacts merged across all databases. Edits propagate to every linked database automatically.</span>
 </div>
 
 <div class="toolbar">
@@ -252,7 +264,7 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
 </div>
 
 <div class="tw"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
-<div class="footer"><span>💡 Click any cell to edit · Hover to see edit hint · Changes auto-save</span><span id="f-saved"></span></div>
+<div class="footer"><span>💡 Click any cell to edit · Edits propagate to all linked databases · Changes auto-save</span><span id="f-saved"></span></div>
 
 <!-- SIDE PANEL -->
 <div class="panel-ov" id="panel">
@@ -292,6 +304,24 @@ tbody tr:hover td.mvcol,tbody tr.editing td.mvcol{background:inherit}
   </div>
 </div>
 
+<!-- MV DELETE MODAL -->
+<div class="modal-ov" id="mv-del-modal">
+  <div class="modal" style="max-width:440px">
+    <h3>🗑 Remove Contact</h3>
+    <p class="msub" id="mvdel-sub"></p>
+    <div class="del-warn" id="mvdel-warn"></div>
+    <!-- Primary action: remove from all -->
+    <button class="btn btn-r" id="mvdel-all-btn" style="width:100%;justify-content:center;padding:11px;font-size:14px;margin-bottom:4px" onclick="mvDelAll()">🗑 Remove from All Databases</button>
+    <!-- Secondary: choose which -->
+    <div class="del-divider" id="mvdel-divider">or choose databases</div>
+    <div id="mvdel-sources"></div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn btn-gh" style="flex:1;justify-content:center" onclick="closeModal('mv-del-modal')">Cancel</button>
+      <button class="btn btn-gh" id="mvdel-sel-btn" style="flex:1;justify-content:center" onclick="mvDelSelected()">Remove Selected</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 var SHARED=[{key:"name",label:"First Name",type:"text"},{key:"surname",label:"Last Name",type:"text"},{key:"email",label:"Email",type:"text"},{key:"organisation",label:"Organisation",type:"text"}];
@@ -304,7 +334,7 @@ var FDESCS={text:"Free text",number:"Numbers only",date:"Date picker",dropdown:"
 var DBS=[];
 var curId=null;
 var isMV=true;
-var MVrows=[];
+var MVrows=[];        // deduplicated merged contacts
 var hiddenCols=JSON.parse(localStorage.getItem("dh_hc")||"[]");
 var editCell=null;
 var sortCfg={key:null,dir:"asc"};
@@ -314,116 +344,79 @@ var selIcon=ICONS[0],selColor=COLORS[0];
 var tmpSchema=[];
 var filters=[];
 var panelDbId=null;
+var mvDelTarget=null; // merged contact pending deletion
 
-// ─── LOADING SCREEN HELPERS ───────────────────────────────────────────────────
-function showLoading(msg){
-  var ls=document.getElementById("loading-screen");
-  ls.style.display="flex";
-  document.getElementById("ls-msg").textContent=msg||"Loading your databases…";
-}
-function hideLoading(){
-  document.getElementById("loading-screen").style.display="none";
-}
+// ─── LOADING ──────────────────────────────────────────────────────────────────
+function showLoading(msg){var ls=document.getElementById("loading-screen");ls.style.display="flex";document.getElementById("ls-msg").textContent=msg||"Loading…";}
+function hideLoading(){document.getElementById("loading-screen").style.display="none";}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload=function(){
-  buildIconGrid(); buildColorGrid();
+  buildIconGrid();buildColorGrid();
   document.addEventListener("click",function(e){
-    if(!e.target.closest(".db-selector")) closeDD();
-    if(!e.target.closest(".topnav-right")) closeHM();
-    if(!e.target.closest(".fwrap")) closeFpop();
+    if(!e.target.closest(".db-selector"))closeDD();
+    if(!e.target.closest(".topnav-right"))closeHM();
+    if(!e.target.closest(".fwrap"))closeFpop();
   });
   sUrl=localStorage.getItem(URL_KEY)||"";
-  if(sUrl){
-    showLoading("Loading your databases…");
-    document.getElementById("setup-banner").style.display="none";
-    startup();
-  } else {
-    hideLoading();
-    document.getElementById("setup-banner").style.display="flex";
-  }
+  if(sUrl){showLoading("Loading your databases…");document.getElementById("setup-banner").style.display="none";startup();}
+  else{hideLoading();document.getElementById("setup-banner").style.display="flex";}
 };
 
 // ─── STARTUP ──────────────────────────────────────────────────────────────────
 function startup(){
   gGet("_Config",function(data){
     if(!data||data.error||!data.databases||!data.databases.length){
-      DBS=[];
-      hideLoading();
-      showToast("No databases found. Create your first one.","info");
-      renderAll(); goMaster(); return;
+      DBS=[];hideLoading();showToast("No databases found. Create your first one.","info");
+      renderAll();goMaster();return;
     }
-    DBS=data.databases.map(function(d){ return Object.assign({},d,{rows:[]}); });
+    DBS=data.databases.map(function(d){return Object.assign({},d,{rows:[]});});
     var done=0;
     DBS.forEach(function(db){
       gGet(db.name,function(d){
         db.rows=(!d||d.error)?[]:(d.rows||[]);
+        ensureRowIds(db);
         done++;
         document.getElementById("ls-msg").textContent="Loaded "+done+" of "+DBS.length+" databases…";
         if(done===DBS.length){
-          buildMVrows();
-          hideLoading();
-          renderAll();
-          goMaster();
-          showToast("Loaded "+MVrows.length+" records across "+DBS.length+" databases.","ok");
+          buildMVrows();hideLoading();renderAll();goMaster();
+          showToast("Loaded "+MVrows.length+" unique contacts across "+DBS.length+" databases.","ok");
         }
       });
     });
   });
 }
 
-// ─── GOOGLE SHEETS HELPERS ────────────────────────────────────────────────────
+// ─── GOOGLE SHEETS ────────────────────────────────────────────────────────────
 function gGet(sheet,cb){
-  if(!sUrl){ cb(null); return; }
+  if(!sUrl){cb(null);return;}
   fetch(sUrl+"?action=get&sheet="+encodeURIComponent(sheet))
-    .then(function(r){ return r.json(); })
-    .then(function(d){ cb(d); })
-    .catch(function(){ cb(null); });
+    .then(function(r){return r.json();}).then(function(d){cb(d);}).catch(function(){cb(null);});
 }
-
-function gPost(body){
-  if(!sUrl) return;
-  fetch(sUrl,{method:"POST",body:JSON.stringify(body)}).catch(function(){});
-}
-
-function saveConfig(){
-  gPost({action:"saveConfig",databases:DBS.map(function(d){ return Object.assign({},d,{rows:[]}); })});
-}
+function gPost(body){if(!sUrl)return;fetch(sUrl,{method:"POST",body:JSON.stringify(body)}).catch(function(){});}
+function saveConfig(){gPost({action:"saveConfig",databases:DBS.map(function(d){return Object.assign({},d,{rows:[]});})});}
 
 function refresh(){
-  if(isMV){
-    showLoading("Refreshing…");
-    DBS.forEach(function(db){ db.rows=[]; });
-    startup();
-  } else {
-    var db=getDB();
-    gGet(db.name,function(d){ db.rows=(!d||d.error)?[]:(d.rows||[]); buildMVrows(); renderTable(); renderList(); });
-  }
+  if(isMV){showLoading("Refreshing…");DBS.forEach(function(db){db.rows=[];});startup();}
+  else{var db=getDB();gGet(db.name,function(d){db.rows=(!d||d.error)?[]:(d.rows||[]);ensureRowIds(db);buildMVrows();renderTable();renderList();});}
 }
 
 // ─── CONNECT ──────────────────────────────────────────────────────────────────
 function connectSheet(){
   var v=document.getElementById("url-input").value.trim();
-  if(!v.startsWith("https://script.google.com")){ showToast("Invalid URL — please check and try again.","err"); return; }
-  sUrl=v; localStorage.setItem(URL_KEY,sUrl);
+  if(!v.startsWith("https://script.google.com")){showToast("Invalid URL.","err");return;}
+  sUrl=v;localStorage.setItem(URL_KEY,sUrl);
   document.getElementById("setup-banner").style.display="none";
-  showLoading("Connecting to Google Sheets…");
-  startup();
+  showLoading("Connecting…");startup();
 }
-
-function useOffline(){
-  document.getElementById("setup-banner").style.display="none";
-  hideLoading();
-  DBS=[]; renderAll(); goMaster();
-}
+function useOffline(){document.getElementById("setup-banner").style.display="none";hideLoading();DBS=[];renderAll();goMaster();}
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg,type){
   var c=document.getElementById("toast-container");
-  var t=document.createElement("div"); t.className="toast "+(type||"ok");
+  var t=document.createElement("div");t.className="toast "+(type||"ok");
   t.innerHTML="<span>"+({ok:"✅",err:"❌",info:"ℹ️"}[type]||"")+"</span><span>"+msg+"</span>";
-  c.appendChild(t);
-  setTimeout(function(){ t.remove(); },3500);
+  c.appendChild(t);setTimeout(function(){t.remove();},3500);
   if(type==="ok"){
     var ts=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     document.getElementById("t-saved").textContent="Saved "+ts;
@@ -431,48 +424,101 @@ function showToast(msg,type){
   }
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-function toggleDD(){ document.getElementById("dd").classList.toggle("open"); }
-function closeDD(){ document.getElementById("dd").classList.remove("open"); }
-function toggleHM(){ document.getElementById("hmenu").classList.toggle("open"); }
-function closeHM(){ document.getElementById("hmenu").classList.remove("open"); }
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function toggleDD(){document.getElementById("dd").classList.toggle("open");}
+function closeDD(){document.getElementById("dd").classList.remove("open");}
+function toggleHM(){document.getElementById("hmenu").classList.toggle("open");}
+function closeHM(){document.getElementById("hmenu").classList.remove("open");}
+function getDB(id){return DBS.find(function(d){return d.id===(id||curId);});}
+function cols(db){return SHARED.concat(db.schema||[]);}
 
-function getDB(id){ return DBS.find(function(d){ return d.id===(id||curId); }); }
-function cols(db){ return SHARED.concat(db.schema||[]); }
+// ─── ROW IDs ──────────────────────────────────────────────────────────────────
+function ensureRowIds(db){(db.rows||[]).forEach(function(r){if(!r._rowId)r._rowId=genId();});}
+function genId(){return "r_"+Math.random().toString(36).slice(2,10)+"_"+Date.now();}
 
-// ─── FIX 1: buildMVrows — always rebuilds from db.rows, called after every mutation ───
-// Previously only called at startup and savePanel. Now called after every edit,
-// delete, and import so Master View is never stale.
+// ─── NORMALISE for matching ───────────────────────────────────────────────────
+function norm(s){return String(s||"").toLowerCase().replace(/\s+/g,"").trim();}
+
+// ─── BUILD DEDUPLICATED MVrows ────────────────────────────────────────────────
+// Each MVrow is a merged contact:
+//   - field values (first non-empty across sources wins)
+//   - _mvId: stable identity for edit tracking
+//   - _sources: [{ dbId, dbName, rowIdx, rowId }]
+//
+// Match rules (in order):
+//   1. email (normalised, non-empty)
+//   2. firstName + surname (normalised, both must be non-empty)
+
+function getMVDataCols(){
+  var m=new Map();
+  SHARED.forEach(function(c){m.set(c.key,c);});
+  DBS.forEach(function(db){(db.schema||[]).forEach(function(c){if(!m.has(c.key))m.set(c.key,c);});});
+  return Array.from(m.values());
+}
+
 function buildMVrows(){
   MVrows=[];
+  var emailMap={};   // normEmail  → MVrows index
+  var nameMap={};    // "first|sur" → MVrows index
+
   DBS.forEach(function(db){
-    (db.rows||[]).forEach(function(r){ MVrows.push(Object.assign({},r,{_db:db.name,_dbId:db.id})); });
+    (db.rows||[]).forEach(function(row,rowIdx){
+      var email=norm(row.email||"");
+      var firstName=norm(row.name||"");
+      var surname=norm(row.surname||"");
+      var nameKey=(firstName&&surname)?(firstName+"|"+surname):null;
+
+      // Find existing merged contact
+      var existIdx=undefined;
+      if(email&&emailMap[email]!==undefined) existIdx=emailMap[email];
+      if(existIdx===undefined&&nameKey&&nameMap[nameKey]!==undefined) existIdx=nameMap[nameKey];
+
+      if(existIdx!==undefined){
+        // Merge: fill blank fields, append source
+        var mv=MVrows[existIdx];
+        getMVDataCols().forEach(function(c){
+          if(!mv[c.key]&&row[c.key]) mv[c.key]=row[c.key];
+        });
+        mv._sources.push({dbId:db.id,dbName:db.name,rowIdx:rowIdx,rowId:row._rowId});
+        // Ensure both keys map to this slot
+        if(email&&emailMap[email]===undefined) emailMap[email]=existIdx;
+        if(nameKey&&nameMap[nameKey]===undefined) nameMap[nameKey]=existIdx;
+      } else {
+        // New unique contact
+        var mv={_mvId:genId(),_sources:[{dbId:db.id,dbName:db.name,rowIdx:rowIdx,rowId:row._rowId}]};
+        getMVDataCols().forEach(function(c){mv[c.key]=row[c.key]||"";});
+        var newIdx=MVrows.length;
+        MVrows.push(mv);
+        if(email) emailMap[email]=newIdx;
+        if(nameKey) nameMap[nameKey]=newIdx;
+      }
+    });
   });
 }
 
-function renderAll(){ renderList(); }
+// ─── RENDER LIST ──────────────────────────────────────────────────────────────
+function renderAll(){renderList();}
 
 function renderList(){
-  var el=document.getElementById("db-list"); el.innerHTML="";
+  var el=document.getElementById("db-list");el.innerHTML="";
   DBS.forEach(function(db){
     var d=document.createElement("div");
     d.className="db-item"+(db.id===curId&&!isMV?" active":"");
     d.innerHTML='<div class="db-icon" style="background:'+db.color+'20">'+db.icon+'</div>'
       +'<div class="db-info"><div class="db-name">'+db.name+'</div><div class="db-desc">'+(db.desc||"")+'</div></div>'
       +'<span class="db-cnt">'+(db.rows||[]).length+'</span>';
-    d.onclick=(function(id){ return function(){ selectDB(id); closeDD(); }; })(db.id);
+    d.onclick=(function(id){return function(){selectDB(id);closeDD();};}) (db.id);
     el.appendChild(d);
   });
-  var total=DBS.reduce(function(s,d){ return s+(d.rows||[]).length; },0);
-  document.getElementById("mv-cnt").textContent=total;
+  document.getElementById("mv-cnt").textContent=MVrows.length;
 }
 
 function goMaster(){
-  isMV=true; curId=null; editCell=null; sortCfg={key:null,dir:"asc"}; filters=[];
+  isMV=true;curId=null;editCell=null;sortCfg={key:null,dir:"asc"};filters=[];
   closeDD();
   document.getElementById("nav-dot").style.background="#7c3aed";
   document.getElementById("nav-lbl").textContent="🌐 Master View";
-  document.getElementById("nav-cnt").textContent=DBS.reduce(function(s,d){ return s+(d.rows||[]).length; },0);
+  document.getElementById("nav-cnt").textContent=MVrows.length;
   document.getElementById("db-btn").className="db-btn master";
   document.getElementById("bc-dot").style.background="#7c3aed";
   document.getElementById("bc-name").textContent="Master View";
@@ -482,11 +528,11 @@ function goMaster(){
   document.getElementById("mv-item").className="db-item mv active";
   document.getElementById("del-btn").style.display="none";
   document.getElementById("fbar").classList.add("hidden");
-  renderFilterChips(); renderList(); renderMV();
+  renderFilterChips();renderList();renderMV();
 }
 
 function selectDB(id){
-  isMV=false; curId=id; editCell=null; sortCfg={key:null,dir:"asc"}; filters=[];
+  isMV=false;curId=id;editCell=null;sortCfg={key:null,dir:"asc"};filters=[];
   var db=getDB();
   document.getElementById("nav-dot").style.background=db.color;
   document.getElementById("nav-lbl").textContent=db.icon+" "+db.name;
@@ -501,259 +547,381 @@ function selectDB(id){
   document.getElementById("mv-item").className="db-item mv";
   document.getElementById("del-btn").style.display="";
   document.getElementById("fbar").classList.add("hidden");
-  renderFilterChips(); renderList(); buildHeader(); renderTable();
+  renderFilterChips();renderList();buildHeader();renderTable();
 }
 
-// ─── MASTER COLS ──────────────────────────────────────────────────────────────
+// ─── MV DISPLAY COLS ──────────────────────────────────────────────────────────
+// _databases is a synthetic column for the multi-badge cell
 function allMVcols(){
-  var m=new Map();
-  m.set("_db",{key:"_db",label:"Database",type:"text"});
-  SHARED.forEach(function(c){ m.set(c.key,c); });
-  DBS.forEach(function(db){ (db.schema||[]).forEach(function(c){ if(!m.has(c.key)) m.set(c.key,c); }); });
-  return Array.from(m.values());
+  var result=[{key:"_databases",label:"Databases",type:"_databases"}];
+  getMVDataCols().forEach(function(c){result.push(c);});
+  return result;
 }
-function MVcols(){ return allMVcols().filter(function(c){ return hiddenCols.indexOf(c.key)===-1; }); }
+function MVcols(){return allMVcols().filter(function(c){return hiddenCols.indexOf(c.key)===-1;});}
 
 // ─── FILTERS ──────────────────────────────────────────────────────────────────
-function toggleFilter(){
-  document.getElementById("fbar").classList.toggle("hidden");
-  populateFcol();
-}
+function toggleFilter(){document.getElementById("fbar").classList.toggle("hidden");populateFcol();}
 function populateFcol(){
-  var s=document.getElementById("fcol"); s.innerHTML="";
-  var cs=isMV?MVcols():cols(getDB());
-  cs.forEach(function(c){ var o=document.createElement("option"); o.value=c.key; o.textContent=c.label; s.appendChild(o); });
+  var s=document.getElementById("fcol");s.innerHTML="";
+  // Offer "Database" as a filterable option in MV
+  var cs=isMV
+    ?[{key:"_databases",label:"Database"}].concat(getMVDataCols())
+    :cols(getDB());
+  cs.forEach(function(c){var o=document.createElement("option");o.value=c.key;o.textContent=c.label;s.appendChild(o);});
 }
-function openFpop(){ populateFcol(); document.getElementById("fpop").style.display="block"; }
-function closeFpop(){ document.getElementById("fpop").style.display="none"; }
+function openFpop(){populateFcol();document.getElementById("fpop").style.display="block";}
+function closeFpop(){document.getElementById("fpop").style.display="none";}
 function addFilter(){
   var k=document.getElementById("fcol").value;
-  var v=document.getElementById("fval").value.trim();
-  if(!v) return;
-  var cs=isMV?MVcols():cols(getDB());
-  var c=cs.find(function(x){ return x.key===k; });
-  filters.push({key:k,label:c?c.label:k,val:v});
+  var v=document.getElementById("fval").value.trim();if(!v)return;
+  var label=k==="_databases"?"Database":(function(){
+    var cs=isMV?getMVDataCols():cols(getDB());
+    var c=cs.find(function(x){return x.key===k;});return c?c.label:k;
+  })();
+  filters.push({key:k,label:label,val:v});
   document.getElementById("fval").value="";
-  closeFpop(); renderFilterChips(); renderTable();
+  closeFpop();renderFilterChips();renderTable();
 }
 function renderFilterChips(){
-  var el=document.getElementById("fchips"); el.innerHTML="";
+  var el=document.getElementById("fchips");el.innerHTML="";
   filters.forEach(function(f,i){
-    var ch=document.createElement("div"); ch.className="fchip";
+    var ch=document.createElement("div");ch.className="fchip";
     ch.innerHTML='<span>'+f.label+' = <strong>'+f.val+'</strong></span><button onclick="removeFilter('+i+')">✕</button>';
     el.appendChild(ch);
   });
 }
-function removeFilter(i){ filters.splice(i,1); renderFilterChips(); renderTable(); }
-function clearFilters(){ filters=[]; renderFilterChips(); renderTable(); }
+function removeFilter(i){filters.splice(i,1);renderFilterChips();renderTable();}
+function clearFilters(){filters=[];renderFilterChips();renderTable();}
 function applyFilters(rows){
-  if(!filters.length) return rows;
-  return rows.filter(function(r){ return filters.every(function(f){ return String(r[f.key]||"").toLowerCase().indexOf(f.val.toLowerCase())!==-1; }); });
-}
-
-// ─── FIX 2: Stable row identity via _rowId ────────────────────────────────────
-// Previously commitMV matched rows by name+email+surname composite key — fragile
-// for duplicates or empty fields. Now every row gets a unique _rowId (UUID-like)
-// assigned when loaded or created. MVrows carry _rowId so we find the exact
-// source row in db.rows without any field matching.
-
-function ensureRowIds(db){
-  (db.rows||[]).forEach(function(r){
-    if(!r._rowId) r._rowId=genId();
+  if(!filters.length)return rows;
+  return rows.filter(function(r){
+    return filters.every(function(f){
+      if(f.key==="_databases"){
+        // Match against any source db name
+        return (r._sources||[]).some(function(s){return s.dbName.toLowerCase().indexOf(f.val.toLowerCase())!==-1;});
+      }
+      return String(r[f.key]||"").toLowerCase().indexOf(f.val.toLowerCase())!==-1;
+    });
   });
 }
 
-function genId(){
-  return "r_"+Math.random().toString(36).slice(2,10)+"_"+Date.now();
-}
-
-// ─── MASTER TABLE ─────────────────────────────────────────────────────────────
+// ─── MASTER VIEW TABLE ────────────────────────────────────────────────────────
 function renderMV(){
   var cs=MVcols();
   var search=document.getElementById("search").value.toLowerCase();
-  var rows=MVrows.filter(function(r){ return cs.some(function(c){ return String(r[c.key]||"").toLowerCase().indexOf(search)!==-1; }); });
+
+  var rows=MVrows.filter(function(r){
+    if(!search)return true;
+    var dataMatch=cs.filter(function(c){return c.key!=="_databases";})
+      .some(function(c){return String(r[c.key]||"").toLowerCase().indexOf(search)!==-1;});
+    var dbMatch=(r._sources||[]).some(function(s){return s.dbName.toLowerCase().indexOf(search)!==-1;});
+    return dataMatch||dbMatch;
+  });
   rows=applyFilters(rows);
-  if(sortCfg.key) rows.sort(function(a,b){ var av=a[sortCfg.key]||"",bv=b[sortCfg.key]||""; return sortCfg.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
-  document.getElementById("t-cnt").textContent=rows.length+" of "+MVrows.length+" records";
-  var thead=document.getElementById("thead"); thead.innerHTML="";
-  var htr=document.createElement("tr"); htr.className="mvh";
+
+  if(sortCfg.key&&sortCfg.key!=="_databases"){
+    rows.sort(function(a,b){
+      var av=a[sortCfg.key]||"",bv=b[sortCfg.key]||"";
+      return sortCfg.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString());
+    });
+  }
+
+  document.getElementById("t-cnt").textContent=rows.length+" of "+MVrows.length+" unique contacts";
+  document.getElementById("nav-cnt").textContent=MVrows.length;
+
+  // Header
+  var thead=document.getElementById("thead");thead.innerHTML="";
+  var htr=document.createElement("tr");htr.className="mvh";
   cs.forEach(function(c){
-    var th=document.createElement("th"); if(c.key==="_db") th.className="mvcol";
-    var arr=sortCfg.key===c.key?(sortCfg.dir==="asc"?" ▲":" ▼"):" ⇅";
-    th.innerHTML=c.label+'<span style="opacity:.4">'+arr+'</span>';
-    th.onclick=(function(ck){ return function(){ sortCfg={key:ck,dir:sortCfg.key===ck&&sortCfg.dir==="asc"?"desc":"asc"}; renderMV(); }; })(c.key);
+    var th=document.createElement("th");
+    if(c.key==="_databases"){
+      th.className="mvcol";
+      th.textContent="Databases";
+      th.style.cursor="default";
+    } else {
+      var arr=sortCfg.key===c.key?(sortCfg.dir==="asc"?" ▲":" ▼"):" ⇅";
+      th.innerHTML=c.label+'<span style="opacity:.4">'+arr+'</span>';
+      th.onclick=(function(ck){return function(){sortCfg={key:ck,dir:sortCfg.key===ck&&sortCfg.dir==="asc"?"desc":"asc"};renderMV();};}) (c.key);
+    }
     htr.appendChild(th);
   });
-  var ath=document.createElement("th"); ath.textContent="Actions"; htr.appendChild(ath); thead.appendChild(htr);
-  var tbody=document.getElementById("tbody"); tbody.innerHTML="";
-  if(!rows.length){ emptyState(tbody,cs.length+1,"🌐","No records","Try adjusting search or filters."); return; }
+  var ath=document.createElement("th");ath.textContent="Actions";htr.appendChild(ath);
+  thead.appendChild(htr);
+
+  // Body
+  var tbody=document.getElementById("tbody");tbody.innerHTML="";
+  if(!rows.length){emptyState(tbody,cs.length+1,"🌐","No contacts","Try adjusting search or filters.");return;}
+
   rows.forEach(function(row){
-    // Use _rowId to find the index in MVrows (not field-based matching)
-    var mi=MVrows.findIndex(function(r){ return r._rowId===row._rowId; });
-    var dbo=DBS.find(function(d){ return d.name===row._db; });
+    var mi=MVrows.findIndex(function(r){return r._mvId===row._mvId;});
     var isEd=editCell&&editCell.mi===mi;
-    var tr=document.createElement("tr"); if(isEd) tr.className="editing";
+    var isMulti=row._sources.length>1;
+    var tr=document.createElement("tr");if(isEd)tr.className="editing";
+
     cs.forEach(function(c){
-      var td=document.createElement("td"); if(c.key==="_db") td.className="mvcol";
-      if(c.key==="_db"){
-        var div=document.createElement("div"); div.className="cell";
-        if(dbo){ var sp=document.createElement("span"); sp.className="src-badge"; sp.style.background=dbo.color; sp.textContent=dbo.icon+" "+row._db; div.appendChild(sp); }
-        else div.textContent=row._db||"";
-        td.appendChild(div);
+      var td=document.createElement("td");
+
+      if(c.key==="_databases"){
+        // ── Multi-badge cell (sticky) ──
+        td.className="mvcol";
+        var wrap=document.createElement("div");wrap.className="src-badges";
+        row._sources.forEach(function(src){
+          var dbo=DBS.find(function(d){return d.id===src.dbId;});
+          var sp=document.createElement("span");
+          sp.className="src-badge";
+          sp.style.background=dbo?dbo.color:"#64748b";
+          if(isMulti){
+            // Small dot indicator for merged contacts
+            sp.innerHTML='<span class="merged-dot"></span>'+(dbo?dbo.icon+" ":"")+src.dbName;
+          } else {
+            sp.textContent=(dbo?dbo.icon+" ":"")+src.dbName;
+          }
+          wrap.appendChild(sp);
+        });
+        td.appendChild(wrap);
+
       } else if(isEd&&editCell.col===c.key){
-        var cd=dbo?cols(dbo).find(function(x){ return x.key===c.key; }):null;
-        mkInput(td,c,cd||c,row,function(v){ commitMV(mi,c.key,v,dbo); });
+        // ── Active edit cell ──
+        var cd=null;
+        row._sources.forEach(function(src){
+          if(cd)return;
+          var dbo=DBS.find(function(d){return d.id===src.dbId;});
+          if(dbo)cd=cols(dbo).find(function(x){return x.key===c.key;});
+        });
+        mkInput(td,c,cd||c,row,function(v){commitMV(mi,c.key,v);});
+
       } else {
-        mkCell(td,c,row,function(){ editCell={mi:mi,col:c.key}; renderMV(); });
+        // ── Read cell ──
+        mkCell(td,c,row,function(){editCell={mi:mi,col:c.key};renderMV();});
       }
       tr.appendChild(td);
     });
-    mkDelBtn(tr,(function(r,mi,dbo){ return function(){
-      if(!confirm("Delete this row?")) return;
-      if(dbo){
-        // FIX 2: find source row by _rowId, not by field matching
-        var srcIdx=(dbo.rows||[]).findIndex(function(x){ return x._rowId===r._rowId; });
-        if(srcIdx>-1){ dbo.rows.splice(srcIdx,1); gPost({action:"delete",sheet:dbo.name,rowIdx:srcIdx}); }
-      }
-      MVrows.splice(mi,1);
-      // FIX 1: renderList keeps counts in sync after MV delete
-      renderMV(); renderList();
-    };})(row,mi,dbo));
+
+    // Delete opens modal
+    mkDelBtn(tr,(function(r){return function(){openMVDelModal(r);};})(row));
     tbody.appendChild(tr);
   });
 }
 
-// FIX 2: commitMV uses _rowId to find the exact source row — no field matching
-function commitMV(mi,col,val,dbo){
-  var mvRow=MVrows[mi];
-  mvRow[col]=val;
+// ─── COMMIT MV EDIT — propagates to ALL source rows ──────────────────────────
+function commitMV(mi,col,val){
+  var mv=MVrows[mi];
+  mv[col]=val;
   editCell=null;
-  if(dbo){
-    var srcIdx=(dbo.rows||[]).findIndex(function(r){ return r._rowId===mvRow._rowId; });
-    if(srcIdx>-1){
-      dbo.rows[srcIdx][col]=val;
-      gPost({action:"upsert",sheet:dbo.name,row:dbo.rows[srcIdx],rowIdx:srcIdx});
-    }
-  }
-  showToast("Saved to "+(dbo?dbo.name:"database"),"ok");
+
+  var updatedDbs=[];
+  mv._sources.forEach(function(src){
+    var dbo=DBS.find(function(d){return d.id===src.dbId;});
+    if(!dbo)return;
+    var srcRow=(dbo.rows||[]).find(function(r){return r._rowId===src.rowId;});
+    if(!srcRow)return;
+    srcRow[col]=val;
+    var srcIdx=dbo.rows.indexOf(srcRow);
+    gPost({action:"upsert",sheet:dbo.name,row:srcRow,rowIdx:srcIdx});
+    updatedDbs.push(dbo.name);
+  });
+
+  showToast("Saved to: "+updatedDbs.join(", "),"ok");
   renderMV();
 }
 
-// ─── NORMAL TABLE ─────────────────────────────────────────────────────────────
+// ─── MV DELETE MODAL ──────────────────────────────────────────────────────────
+function openMVDelModal(mvRow){
+  mvDelTarget=mvRow;
+  var sources=mvRow._sources;
+  var contactName=mvRow.name||mvRow.surname||mvRow.email||"this contact";
+  var count=sources.length;
+
+  document.getElementById("mvdel-sub").textContent=
+    '"'+contactName+'" exists in '+count+' database'+(count>1?"s":"")+'.';
+  document.getElementById("mvdel-warn").textContent=
+    count>1
+      ? "Removing from all databases will permanently delete this contact from every linked database."
+      : "This will permanently delete the contact from "+sources[0].dbName+".";
+
+  // Build checkbox list for "choose" section
+  var el=document.getElementById("mvdel-sources");el.innerHTML="";
+  sources.forEach(function(src,i){
+    var dbo=DBS.find(function(d){return d.id===src.dbId;});
+    var item=document.createElement("div");item.className="del-src-item";
+    item.innerHTML='<label><input type="checkbox" id="delsrc_'+i+'" checked/>'
+      +'<span style="width:10px;height:10px;border-radius:50%;background:'+(dbo?dbo.color:"#64748b")+';flex-shrink:0;display:inline-block"></span>'
+      +(dbo?dbo.icon+" ":"")+src.dbName+'</label>';
+    el.appendChild(item);
+  });
+
+  // Hide the "choose" section if only one source — nothing to choose from
+  var divider=document.getElementById("mvdel-divider");
+  var selBtn=document.getElementById("mvdel-sel-btn");
+  if(count===1){
+    divider.style.display="none";
+    el.style.display="none";
+    selBtn.style.display="none";
+  } else {
+    divider.style.display="";
+    el.style.display="";
+    selBtn.style.display="";
+  }
+
+  document.getElementById("mv-del-modal").classList.add("open");
+}
+
+function mvDelAll(){
+  if(!mvDelTarget)return;
+  _doMVDelete(mvDelTarget._sources.map(function(_,i){return i;}));
+}
+
+function mvDelSelected(){
+  if(!mvDelTarget)return;
+  var selected=[];
+  mvDelTarget._sources.forEach(function(_,i){
+    var el=document.getElementById("delsrc_"+i);
+    if(el&&el.checked)selected.push(i);
+  });
+  if(!selected.length){showToast("Select at least one database.","err");return;}
+  _doMVDelete(selected);
+}
+
+function _doMVDelete(selectedIndices){
+  var mv=mvDelTarget;
+  var removedDbs=[];
+  var removedSet=new Set(selectedIndices);
+
+  selectedIndices.forEach(function(i){
+    var src=mv._sources[i];
+    var dbo=DBS.find(function(d){return d.id===src.dbId;});
+    if(!dbo)return;
+    var srcIdx=(dbo.rows||[]).findIndex(function(r){return r._rowId===src.rowId;});
+    if(srcIdx>-1){
+      dbo.rows.splice(srcIdx,1);
+      gPost({action:"delete",sheet:dbo.name,rowIdx:srcIdx});
+      removedDbs.push(dbo.name);
+    }
+  });
+
+  // Remove selected sources from the merged contact
+  mv._sources=mv._sources.filter(function(_,i){return !removedSet.has(i);});
+
+  // If no sources remain, remove the contact from MVrows entirely
+  if(mv._sources.length===0){
+    MVrows=MVrows.filter(function(r){return r._mvId!==mv._mvId;});
+  }
+
+  closeModal("mv-del-modal");
+  mvDelTarget=null;
+  buildMVrows(); // full rebuild for consistency
+  renderMV();renderList();
+  showToast("Removed from: "+removedDbs.join(", "),"ok");
+}
+
+// ─── NORMAL DB TABLE ──────────────────────────────────────────────────────────
 function buildHeader(){
-  var db=getDB(); if(!db) return;
-  var cs=cols(db); var tr=document.createElement("tr");
+  var db=getDB();if(!db)return;
+  var cs=cols(db);var tr=document.createElement("tr");
   cs.forEach(function(c){
     var th=document.createElement("th");
     var arr=sortCfg.key===c.key?(sortCfg.dir==="asc"?" ▲":" ▼"):" ⇅";
     th.innerHTML=c.label+'<span style="opacity:.4">'+arr+'</span>';
-    th.onclick=(function(ck){ return function(){ sortCfg={key:ck,dir:sortCfg.key===ck&&sortCfg.dir==="asc"?"desc":"asc"}; buildHeader(); renderTable(); }; })(c.key);
+    th.onclick=(function(ck){return function(){sortCfg={key:ck,dir:sortCfg.key===ck&&sortCfg.dir==="asc"?"desc":"asc"};buildHeader();renderTable();};}) (c.key);
     tr.appendChild(th);
   });
-  var th=document.createElement("th"); th.textContent="Actions"; tr.appendChild(th);
-  var thead=document.getElementById("thead"); thead.innerHTML=""; thead.appendChild(tr);
+  var th=document.createElement("th");th.textContent="Actions";tr.appendChild(th);
+  var thead=document.getElementById("thead");thead.innerHTML="";thead.appendChild(tr);
 }
 
 function renderTable(){
-  if(isMV){ renderMV(); return; }
-  var db=getDB(); if(!db) return;
+  if(isMV){renderMV();return;}
+  var db=getDB();if(!db)return;
   var cs=cols(db);
   var search=document.getElementById("search").value.toLowerCase();
-  var rows=(db.rows||[]).filter(function(r){ return cs.some(function(c){ return String(r[c.key]||"").toLowerCase().indexOf(search)!==-1; }); });
+  var rows=(db.rows||[]).filter(function(r){return cs.some(function(c){return String(r[c.key]||"").toLowerCase().indexOf(search)!==-1;});});
   rows=applyFilters(rows);
-  if(sortCfg.key) rows.sort(function(a,b){ var av=a[sortCfg.key]||"",bv=b[sortCfg.key]||""; return sortCfg.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString()); });
+  if(sortCfg.key)rows.sort(function(a,b){var av=a[sortCfg.key]||"",bv=b[sortCfg.key]||"";return sortCfg.dir==="asc"?av.toString().localeCompare(bv.toString()):bv.toString().localeCompare(av.toString());});
   document.getElementById("t-cnt").textContent=rows.length+" of "+(db.rows||[]).length+" records";
   document.getElementById("nav-cnt").textContent=(db.rows||[]).length;
-  var tbody=document.getElementById("tbody"); tbody.innerHTML="";
-  if(!rows.length){ emptyState(tbody,cs.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click ＋ Add Row to get started.":"No records match your search or filters."); return; }
+  var tbody=document.getElementById("tbody");tbody.innerHTML="";
+  if(!rows.length){emptyState(tbody,cs.length+1,db.icon,"No records in "+db.name,(db.rows||[]).length===0?"Click ＋ Add Row to get started.":"No records match your search or filters.");return;}
   rows.forEach(function(row){
     var oi=(db.rows||[]).indexOf(row);
     var isEd=editCell&&editCell.ri===oi;
-    var tr=document.createElement("tr"); if(isEd) tr.className="editing";
+    var tr=document.createElement("tr");if(isEd)tr.className="editing";
     cs.forEach(function(c){
       var td=document.createElement("td");
-      if(isEd&&editCell.col===c.key) mkInput(td,c,c,row,function(v){ commitEdit(oi,c.key,v); });
-      else mkCell(td,c,row,function(){ editCell={ri:oi,col:c.key}; renderTable(); });
+      if(isEd&&editCell.col===c.key)mkInput(td,c,c,row,function(v){commitEdit(oi,c.key,v);});
+      else mkCell(td,c,row,function(){editCell={ri:oi,col:c.key};renderTable();});
       tr.appendChild(td);
     });
-    mkDelBtn(tr,(function(ri){ return function(){
-      if(!confirm("Delete this row?")) return;
+    mkDelBtn(tr,(function(ri){return function(){
+      if(!confirm("Delete this row?"))return;
       db.rows.splice(ri,1);
       gPost({action:"delete",sheet:db.name,rowIdx:ri});
-      // FIX 1: rebuild MVrows after delete in DB view so Master View stays in sync
-      buildMVrows();
-      renderTable(); renderList(); showToast("Row deleted.","ok");
+      buildMVrows();renderTable();renderList();showToast("Row deleted.","ok");
     };})(oi));
     tbody.appendChild(tr);
   });
 }
 
 function mkInput(td,c,cd,row,done){
-  var type=(cd&&cd.type)||c.type;
-  var el;
+  var type=(cd&&cd.type)||c.type;var el;
   if(type==="dropdown"){
-    el=document.createElement("select"); el.className="cell";
-    var opts=((cd&&cd.options)||c.options||"").split(",").map(function(o){ return o.trim(); });
-    el.innerHTML='<option value="">--</option>'+opts.map(function(o){ return '<option'+(row[c.key]===o?" selected":"")+'>'+o+'</option>'; }).join("");
-    el.onchange=function(){ done(el.value); }; el.onblur=function(){ done(el.value); };
+    el=document.createElement("select");el.className="cell";
+    var opts=((cd&&cd.options)||c.options||"").split(",").map(function(o){return o.trim();});
+    el.innerHTML='<option value="">--</option>'+opts.map(function(o){return '<option'+(row[c.key]===o?" selected":"")+'>'+o+'</option>';}).join("");
+    el.onchange=function(){done(el.value);};el.onblur=function(){done(el.value);};
   } else if(type==="checkbox"){
-    el=document.createElement("input"); el.type="checkbox"; el.className="cell";
+    el=document.createElement("input");el.type="checkbox";el.className="cell";
     el.checked=row[c.key]==="true"||row[c.key]===true;
-    el.onchange=function(){ done(String(el.checked)); };
+    el.onchange=function(){done(String(el.checked));};
   } else {
-    el=document.createElement("input"); el.className="cell";
+    el=document.createElement("input");el.className="cell";
     el.type=type==="date"?"date":type==="number"?"number":"text";
     el.value=row[c.key]||"";
-    el.onblur=function(){ done(el.value); };
-    el.onkeydown=function(e){ if(e.key==="Enter") done(el.value); if(e.key==="Escape"){ editCell=null; renderTable(); } };
+    el.onblur=function(){done(el.value);};
+    el.onkeydown=function(e){if(e.key==="Enter")done(el.value);if(e.key==="Escape"){editCell=null;renderTable();}};
   }
-  td.appendChild(el); setTimeout(function(){ el.focus(); },0);
+  td.appendChild(el);setTimeout(function(){el.focus();},0);
 }
 
 function mkCell(td,c,row,onClick){
-  var div=document.createElement("div"); var val=row[c.key];
+  var div=document.createElement("div");var val=row[c.key];
   div.className="cell"+(val?"":" empty");
-  if(c.type==="dropdown"&&val){ var sp=document.createElement("span"); sp.className="badge"; sp.style.background=strColor(val); sp.textContent=val; div.appendChild(sp); }
-  else if(c.type==="checkbox"){ var sp=document.createElement("span"); sp.style.fontSize="16px"; sp.textContent=(val==="true"||val===true)?"✅":"☐"; div.appendChild(sp); }
-  else { var sp=document.createElement("span"); sp.className="ct"; sp.textContent=val||"click to edit"; div.appendChild(sp); }
-  var hint=document.createElement("span"); hint.className="eh"; hint.textContent="✏️"; div.appendChild(hint);
-  div.onclick=onClick; td.appendChild(div);
+  if(c.type==="dropdown"&&val){var sp=document.createElement("span");sp.className="badge";sp.style.background=strColor(val);sp.textContent=val;div.appendChild(sp);}
+  else if(c.type==="checkbox"){var sp=document.createElement("span");sp.style.fontSize="16px";sp.textContent=(val==="true"||val===true)?"✅":"☐";div.appendChild(sp);}
+  else{var sp=document.createElement("span");sp.className="ct";sp.textContent=val||"click to edit";div.appendChild(sp);}
+  var hint=document.createElement("span");hint.className="eh";hint.textContent="✏️";div.appendChild(hint);
+  div.onclick=onClick;td.appendChild(div);
 }
 
 function mkDelBtn(tr,fn){
-  var td=document.createElement("td"); td.style.cssText="padding:6px 10px;text-align:center";
-  var btn=document.createElement("button"); btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.5";
-  btn.textContent="🗑"; btn.onmouseenter=function(){ btn.style.opacity="1"; }; btn.onmouseleave=function(){ btn.style.opacity=".5"; };
-  btn.onclick=fn; td.appendChild(btn); tr.appendChild(td);
+  var td=document.createElement("td");td.style.cssText="padding:6px 10px;text-align:center";
+  var btn=document.createElement("button");btn.style.cssText="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;opacity:.5";
+  btn.textContent="🗑";btn.onmouseenter=function(){btn.style.opacity="1";};btn.onmouseleave=function(){btn.style.opacity=".5";};
+  btn.onclick=fn;td.appendChild(btn);tr.appendChild(td);
 }
 
 function emptyState(tbody,span,icon,title,desc){
-  var tr=document.createElement("tr"); var td=document.createElement("td"); td.colSpan=span; td.className="empty-state";
+  var tr=document.createElement("tr");var td=document.createElement("td");td.colSpan=span;td.className="empty-state";
   td.innerHTML='<div class="ei">'+icon+'</div><div class="et">'+title+'</div><div class="ed">'+desc+'</div><button class="btn btn-g" onclick="addRow()" style="margin:0 auto">＋ Add Row</button>';
-  tr.appendChild(td); tbody.appendChild(tr);
+  tr.appendChild(td);tbody.appendChild(tr);
 }
 
 function commitEdit(ri,col,val){
-  var db=getDB(); db.rows[ri][col]=val; editCell=null;
+  var db=getDB();db.rows[ri][col]=val;editCell=null;
   gPost({action:"upsert",sheet:db.name,row:db.rows[ri],rowIdx:ri});
-  // FIX 1: rebuild MVrows after any cell edit in DB view
-  buildMVrows();
-  showToast("Saved to "+db.name,"ok"); renderTable(); renderList();
+  buildMVrows();showToast("Saved to "+db.name,"ok");renderTable();renderList();
 }
 
 // ─── ADD ROW ──────────────────────────────────────────────────────────────────
-function addRow(){
-  if(isMV) openPickDB(); else openAddPanel(curId);
-}
+function addRow(){if(isMV)openPickDB();else openAddPanel(curId);}
 
 function openPickDB(){
   document.getElementById("p-title").textContent="➕ Add Row — Choose Database";
-  var body=document.getElementById("p-body"); body.innerHTML="";
-  var t=document.createElement("div"); t.className="psec"; t.textContent="Which database should this row go into?"; body.appendChild(t);
+  var body=document.getElementById("p-body");body.innerHTML="";
+  var t=document.createElement("div");t.className="psec";t.textContent="Which database should this row go into?";body.appendChild(t);
   DBS.forEach(function(db){
-    var d=document.createElement("div"); d.className="pdb-opt";
+    var d=document.createElement("div");d.className="pdb-opt";
     d.innerHTML='<div style="width:34px;height:34px;border-radius:9px;background:'+db.color+'20;display:flex;align-items:center;justify-content:center;font-size:17px">'+db.icon+'</div><div><div style="font-weight:600;font-size:13px">'+db.name+'</div><div style="font-size:11px;color:#94a3b8">'+(db.desc||"")+'</div></div>';
-    d.onclick=(function(id){ return function(){ closePanel(); openAddPanel(id); }; })(db.id);
+    d.onclick=(function(id){return function(){closePanel();openAddPanel(id);};}) (db.id);
     body.appendChild(d);
   });
   document.getElementById("panel").classList.add("open");
@@ -761,57 +929,56 @@ function openPickDB(){
 
 function openAddPanel(dbId){
   panelDbId=dbId;
-  var db=DBS.find(function(d){ return d.id===dbId; });
+  var db=DBS.find(function(d){return d.id===dbId;});
   document.getElementById("p-title").textContent="➕ Add to "+db.icon+" "+db.name;
-  var body=document.getElementById("p-body"); body.innerHTML="";
-  var t=document.createElement("div"); t.className="psec"; t.textContent="Fill in the details below"; body.appendChild(t);
+  var body=document.getElementById("p-body");body.innerHTML="";
+  var t=document.createElement("div");t.className="psec";t.textContent="Fill in the details below";body.appendChild(t);
   cols(db).forEach(function(c){
-    var wrap=document.createElement("div"); wrap.className="pfield";
-    var lbl=document.createElement("label"); lbl.textContent=c.label; wrap.appendChild(lbl);
+    var wrap=document.createElement("div");wrap.className="pfield";
+    var lbl=document.createElement("label");lbl.textContent=c.label;wrap.appendChild(lbl);
     var inp;
-    if(c.type==="dropdown"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML='<option value="">--</option>'+((c.options||"").split(",").map(function(o){ return '<option>'+o.trim()+'</option>'; }).join("")); }
-    else if(c.type==="checkbox"){ inp=document.createElement("select"); inp.id="pf_"+c.key; inp.innerHTML='<option value="">--</option><option value="true">✅ Yes</option><option value="false">☐ No</option>'; }
-    else if(c.type==="date"){ inp=document.createElement("input"); inp.type="date"; inp.id="pf_"+c.key; }
-    else if(c.type==="number"){ inp=document.createElement("input"); inp.type="number"; inp.id="pf_"+c.key; }
-    else { inp=document.createElement("input"); inp.type="text"; inp.id="pf_"+c.key; inp.placeholder="Enter "+c.label.toLowerCase()+"…"; }
+    if(c.type==="dropdown"){inp=document.createElement("select");inp.id="pf_"+c.key;inp.innerHTML='<option value="">--</option>'+((c.options||"").split(",").map(function(o){return '<option>'+o.trim()+'</option>';}).join(""));}
+    else if(c.type==="checkbox"){inp=document.createElement("select");inp.id="pf_"+c.key;inp.innerHTML='<option value="">--</option><option value="true">✅ Yes</option><option value="false">☐ No</option>';}
+    else if(c.type==="date"){inp=document.createElement("input");inp.type="date";inp.id="pf_"+c.key;}
+    else if(c.type==="number"){inp=document.createElement("input");inp.type="number";inp.id="pf_"+c.key;}
+    else{inp=document.createElement("input");inp.type="text";inp.id="pf_"+c.key;inp.placeholder="Enter "+c.label.toLowerCase()+"…";}
     wrap.appendChild(inp);
-    if(FDESCS[c.type]){ var desc=document.createElement("div"); desc.className="pfield-desc"; desc.textContent=FDESCS[c.type]; wrap.appendChild(desc); }
+    if(FDESCS[c.type]){var desc=document.createElement("div");desc.className="pfield-desc";desc.textContent=FDESCS[c.type];wrap.appendChild(desc);}
     body.appendChild(wrap);
   });
   document.getElementById("panel").classList.add("open");
 }
 
-function closePanel(){ document.getElementById("panel").classList.remove("open"); panelDbId=null; }
+function closePanel(){document.getElementById("panel").classList.remove("open");panelDbId=null;}
 
 function savePanel(){
-  var db=DBS.find(function(d){ return d.id===panelDbId; }); if(!db) return;
+  var db=DBS.find(function(d){return d.id===panelDbId;});if(!db)return;
   var row={_rowId:genId()};
-  cols(db).forEach(function(c){ var el=document.getElementById("pf_"+c.key); row[c.key]=el?el.value:""; });
+  cols(db).forEach(function(c){var el=document.getElementById("pf_"+c.key);row[c.key]=el?el.value:"";});
   db.rows.push(row);
   gPost({action:"upsert",sheet:db.name,row:row,rowIdx:db.rows.length-1});
-  // FIX 1: rebuild MVrows so Master View immediately sees the new row
   buildMVrows();
-  if(isMV){ renderList(); renderMV(); } else { renderTable(); renderList(); }
-  closePanel(); showToast("Row added to "+db.name,"ok");
+  if(isMV){renderList();renderMV();}else{renderTable();renderList();}
+  closePanel();showToast("Row added to "+db.name,"ok");
 }
 
 // ─── SCHEMA ───────────────────────────────────────────────────────────────────
 function openSchema(){
-  if(isMV){ openMVSchema(); return; }
+  if(isMV){openMVSchema();return;}
   var db=getDB();
   document.getElementById("sm-title").textContent="📐 Edit Data Schema";
   document.getElementById("sm-sub").textContent="Columns for: "+db.icon+" "+db.name;
-  var body=document.getElementById("sm-body"); body.innerHTML="";
-  var st=document.createElement("div"); st.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px"; st.textContent="Shared Base Columns"; body.appendChild(st);
+  var body=document.getElementById("sm-body");body.innerHTML="";
+  var st=document.createElement("div");st.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px";st.textContent="Shared Base Columns";body.appendChild(st);
   var sw=document.createElement("div");
-  SHARED.forEach(function(c){ sw.innerHTML+='<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px">'+c.label+' <span class="stag">'+c.type+'</span></div>'; });
+  SHARED.forEach(function(c){sw.innerHTML+='<div style="display:inline-flex;align-items:center;gap:5px;margin:3px;background:#f1f5f9;padding:5px 10px;border-radius:6px;font-size:12px">'+c.label+' <span class="stag">'+c.type+'</span></div>';});
   body.appendChild(sw);
-  var ct=document.createElement("div"); ct.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px"; ct.textContent="Custom Columns"; body.appendChild(ct);
-  var fw=document.createElement("div"); fw.id="sfwrap"; body.appendChild(fw);
-  var ab=document.createElement("button"); ab.className="btn btn-gh"; ab.style.cssText="width:100%;margin-top:8px;justify-content:center"; ab.textContent="＋ Add Column"; ab.onclick=addSchemaField; body.appendChild(ab);
-  var pv=document.createElement("div"); pv.className="sprev"; pv.id="sprev"; pv.style.display="none"; pv.innerHTML="<strong>Column order:</strong> <span id='sprev-txt'></span>"; body.appendChild(pv);
+  var ct=document.createElement("div");ct.style.cssText="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px";ct.textContent="Custom Columns";body.appendChild(ct);
+  var fw=document.createElement("div");fw.id="sfwrap";body.appendChild(fw);
+  var ab=document.createElement("button");ab.className="btn btn-gh";ab.style.cssText="width:100%;margin-top:8px;justify-content:center";ab.textContent="＋ Add Column";ab.onclick=addSchemaField;body.appendChild(ab);
+  var pv=document.createElement("div");pv.className="sprev";pv.id="sprev";pv.style.display="none";pv.innerHTML="<strong>Column order:</strong> <span id='sprev-txt'></span>";body.appendChild(pv);
   tmpSchema=JSON.parse(JSON.stringify(db.schema||[]));
-  renderSchema(); updatePreview();
+  renderSchema();updatePreview();
   document.getElementById("sm-save").onclick=saveSchema;
   document.getElementById("schema-modal").classList.add("open");
 }
@@ -819,11 +986,11 @@ function openSchema(){
 function openMVSchema(){
   document.getElementById("sm-title").textContent="📐 Master View — Column Visibility";
   document.getElementById("sm-sub").textContent="Show or hide columns in the Master View.";
-  var body=document.getElementById("sm-body"); body.innerHTML="";
+  var body=document.getElementById("sm-body");body.innerHTML="";
   allMVcols().forEach(function(c){
     var vis=hiddenCols.indexOf(c.key)===-1;
-    var row=document.createElement("div"); row.className="vrow";
-    row.innerHTML='<div class="vrow-l"><span style="font-size:13px;font-weight:500">'+c.label+'</span><span class="stag" style="margin-left:4px">'+c.type+'</span></div>'
+    var row=document.createElement("div");row.className="vrow";
+    row.innerHTML='<div class="vrow-l"><span style="font-size:13px;font-weight:500">'+c.label+'</span><span class="stag" style="margin-left:4px">'+(c.type==="_databases"?"system":c.type)+'</span></div>'
       +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#64748b"><input type="checkbox" id="vc_'+c.key+'" '+(vis?"checked":"")+'style="width:16px;height:16px;cursor:pointer"/> Show</label>';
     body.appendChild(row);
   });
@@ -832,131 +999,128 @@ function openMVSchema(){
 }
 
 function renderSchema(){
-  var w=document.getElementById("sfwrap"); if(!w) return; w.innerHTML="";
+  var w=document.getElementById("sfwrap");if(!w)return;w.innerHTML="";
   tmpSchema.forEach(function(f,i){
-    var div=document.createElement("div"); div.className="sfield";
-    var m=document.createElement("div"); m.className="sfm";
+    var div=document.createElement("div");div.className="sfield";
+    var m=document.createElement("div");m.className="sfm";
     m.innerHTML='<input class="fn" type="text" value="'+(f.label||"")+'" placeholder="Column name" onchange="tmpSchema['+i+'].label=this.value;tmpSchema['+i+'].key=this.value.toLowerCase().replace(/\\s+/g,\'_\');updatePreview()">'
       +'<select class="ft" onchange="tmpSchema['+i+'].type=this.value;renderSchema();updatePreview()">'
-      +FTYPES.map(function(t){ return '<option value="'+t+'"'+(f.type===t?" selected":"")+'>'+t+' — '+FDESCS[t]+'</option>'; }).join("")+'</select>'
+      +FTYPES.map(function(t){return '<option value="'+t+'"'+(f.type===t?" selected":"")+'>'+t+' — '+FDESCS[t]+'</option>';}).join("")+'</select>'
       +(f.type==="dropdown"?'<input class="fo" type="text" value="'+(f.options||"")+'" placeholder="opt1,opt2" onchange="tmpSchema['+i+'].options=this.value"/>':"")
       +'<div class="ftd">'+(FDESCS[f.type]||"")+'</div>';
-    var rb=document.createElement("button"); rb.className="rfld"; rb.textContent="✕";
-    rb.onclick=(function(idx){ return function(){ tmpSchema.splice(idx,1); renderSchema(); updatePreview(); }; })(i);
-    div.appendChild(m); div.appendChild(rb); w.appendChild(div);
+    var rb=document.createElement("button");rb.className="rfld";rb.textContent="✕";
+    rb.onclick=(function(idx){return function(){tmpSchema.splice(idx,1);renderSchema();updatePreview();};}) (i);
+    div.appendChild(m);div.appendChild(rb);w.appendChild(div);
   });
 }
 
-function addSchemaField(){ tmpSchema.push({key:"f_"+Date.now(),label:"New Column",type:"text",options:""}); renderSchema(); updatePreview(); }
+function addSchemaField(){tmpSchema.push({key:"f_"+Date.now(),label:"New Column",type:"text",options:""});renderSchema();updatePreview();}
 
 function updatePreview(){
   var all=SHARED.concat(tmpSchema);
-  var box=document.getElementById("sprev"); var txt=document.getElementById("sprev-txt");
-  if(!box||!txt) return;
+  var box=document.getElementById("sprev");var txt=document.getElementById("sprev-txt");
+  if(!box||!txt)return;
   box.style.display=all.length?"block":"none";
-  txt.textContent=all.map(function(c){ return c.label; }).join(" → ");
+  txt.textContent=all.map(function(c){return c.label;}).join(" → ");
 }
 
 function saveSchema(){
   var db=getDB();
-  db.schema=tmpSchema.map(function(f){ return Object.assign({},f,{key:f.label.toLowerCase().replace(/\s+/g,"_")}); });
+  db.schema=tmpSchema.map(function(f){return Object.assign({},f,{key:f.label.toLowerCase().replace(/\s+/g,"_")});});
   saveConfig();
-  gPost({action:"syncHeaders",sheet:db.name,headers:cols(db).map(function(c){ return c.key; })});
-  buildHeader(); renderTable();
-  closeModal("schema-modal"); showToast("Columns saved for "+db.name,"ok");
+  gPost({action:"syncHeaders",sheet:db.name,headers:cols(db).map(function(c){return c.key;})});
+  buildHeader();renderTable();
+  closeModal("schema-modal");showToast("Columns saved for "+db.name,"ok");
 }
 
 function saveMVSchema(){
-  hiddenCols=allMVcols().filter(function(c){ var el=document.getElementById("vc_"+c.key); return el&&!el.checked; }).map(function(c){ return c.key; });
+  hiddenCols=allMVcols().filter(function(c){var el=document.getElementById("vc_"+c.key);return el&&!el.checked;}).map(function(c){return c.key;});
   localStorage.setItem("dh_hc",JSON.stringify(hiddenCols));
-  closeModal("schema-modal"); renderMV(); showToast("Master View columns updated.","ok");
+  closeModal("schema-modal");renderMV();showToast("Master View columns updated.","ok");
 }
 
-// ─── NEW DATABASE ─────────────────────────────────────────────────────────────
+// ─── NEW DB ───────────────────────────────────────────────────────────────────
 function buildIconGrid(){
-  var el=document.getElementById("igrid"); el.innerHTML="";
-  ICONS.forEach(function(ic){ var d=document.createElement("div"); d.className="iopt"+(ic===selIcon?" sel":""); d.textContent=ic; d.onclick=function(){ selIcon=ic; buildIconGrid(); }; el.appendChild(d); });
+  var el=document.getElementById("igrid");el.innerHTML="";
+  ICONS.forEach(function(ic){var d=document.createElement("div");d.className="iopt"+(ic===selIcon?" sel":"");d.textContent=ic;d.onclick=function(){selIcon=ic;buildIconGrid();};el.appendChild(d);});
 }
 function buildColorGrid(){
-  var el=document.getElementById("cgrid"); el.innerHTML="";
-  COLORS.forEach(function(c){ var d=document.createElement("div"); d.className="copt"+(c===selColor?" sel":""); d.style.background=c; d.onclick=function(){ selColor=c; buildColorGrid(); }; el.appendChild(d); });
+  var el=document.getElementById("cgrid");el.innerHTML="";
+  COLORS.forEach(function(c){var d=document.createElement("div");d.className="copt"+(c===selColor?" sel":"");d.style.background=c;d.onclick=function(){selColor=c;buildColorGrid();};el.appendChild(d);});
 }
-function openNewDB(){ closeDD(); document.getElementById("new-db-modal").classList.add("open"); }
+function openNewDB(){closeDD();document.getElementById("new-db-modal").classList.add("open");}
 
 function createDB(){
   var name=document.getElementById("ndb-name").value.trim();
   var desc=document.getElementById("ndb-desc").value.trim();
-  if(!name){ showToast("Please enter a database name.","err"); return; }
+  if(!name){showToast("Please enter a database name.","err");return;}
   var id="db_"+Date.now();
   DBS.push({id:id,name:name,desc:desc,icon:selIcon,color:selColor,schema:[{key:"notes",label:"Notes",type:"text"}],rows:[]});
-  saveConfig();
-  closeModal("new-db-modal");
-  document.getElementById("ndb-name").value=""; document.getElementById("ndb-desc").value="";
-  selectDB(id); showToast('"'+name+'" created!',"ok");
+  saveConfig();closeModal("new-db-modal");
+  document.getElementById("ndb-name").value="";document.getElementById("ndb-desc").value="";
+  selectDB(id);showToast('"'+name+'" created!',"ok");
 }
 
-// ─── FIX 4: deleteDB now sends a delete sheet request to Apps Script ──────────
-// Previously DBS was updated in memory and saveConfig() was called, but the
-// actual Google Sheet tab was never removed. Now we send action:"deleteSheet"
-// so the Apps Script can call sheet.deleteTab() on the named sheet.
 function deleteDB(){
-  var db=getDB(); if(!db) return;
-  if(!confirm('Delete "'+db.name+'"? This cannot be undone.')) return;
-  // Send to backend BEFORE removing from DBS so we still have db.name
+  var db=getDB();if(!db)return;
+  if(!confirm('Delete "'+db.name+'"? This cannot be undone.'))return;
   gPost({action:"deleteSheet",sheet:db.name});
-  DBS=DBS.filter(function(d){ return d.id!==curId; });
-  // FIX 1: rebuild MVrows after deleting a whole database
-  buildMVrows();
-  saveConfig();
-  if(DBS.length) selectDB(DBS[0].id); else goMaster();
-  renderList(); showToast("Database deleted.","ok");
+  DBS=DBS.filter(function(d){return d.id!==curId;});
+  buildMVrows();saveConfig();
+  if(DBS.length)selectDB(DBS[0].id);else goMaster();
+  renderList();showToast("Database deleted.","ok");
 }
 
-// ─── FIX 3: importCSV now calls buildMVrows() after importing ────────────────
-// Previously imported rows were pushed to db.rows but MVrows was never rebuilt,
-// so switching to Master View wouldn't show the new data until a full refresh.
+// ─── CSV ──────────────────────────────────────────────────────────────────────
+function exportCSV(){
+  if(isMV){
+    var dataCols=getMVDataCols();
+    var headers=["Databases"].concat(dataCols.map(function(c){return c.label;}));
+    var lines=[headers.map(function(h){return '"'+h+'"';}).join(",")];
+    MVrows.forEach(function(r){
+      var dbNames=r._sources.map(function(s){return s.dbName;}).join("; ");
+      var vals=['"'+dbNames+'"'].concat(dataCols.map(function(c){return '"'+String(r[c.key]||"").replace(/"/g,'""')+'"';}));
+      lines.push(vals.join(","));
+    });
+    var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="master-list.csv";a.click();
+    showToast("CSV exported.","ok");
+  } else {
+    var db=getDB();var cs=cols(db);
+    var lines=[cs.map(function(c){return '"'+c.label+'"';}).join(",")].concat(
+      (db.rows||[]).map(function(r){return cs.map(function(c){return '"'+String(r[c.key]||"").replace(/"/g,'""')+'"';}).join(",");})
+    );
+    var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=db.name+".csv";a.click();
+    showToast("CSV exported.","ok");
+  }
+}
+
 function importCSV(e){
-  if(isMV){ showToast("Select a specific database to import into.","err"); e.target.value=""; return; }
-  var file=e.target.files[0]; if(!file) return;
+  if(isMV){showToast("Select a specific database to import into.","err");e.target.value="";return;}
+  var file=e.target.files[0];if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
-    var lines=ev.target.result.trim().split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
-    if(lines.length<2){ showToast("CSV appears empty.","err"); return; }
-    function prow(line){ var cells=[],cur="",inQ=false; for(var i=0;i<line.length;i++){ var ch=line[i]; if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){cells.push(cur.trim());cur="";}else cur+=ch; } cells.push(cur.trim()); return cells; }
-    var db=getDB(); var cs=cols(db);
-    var hdrs=prow(lines[0]).map(function(h){ return h.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,""); });
+    var lines=ev.target.result.trim().split("\n").map(function(l){return l.trim();}).filter(Boolean);
+    if(lines.length<2){showToast("CSV appears empty.","err");return;}
+    function prow(line){var cells=[],cur="",inQ=false;for(var i=0;i<line.length;i++){var ch=line[i];if(ch==='"'&&!inQ){inQ=true;}else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}else if(ch==='"'&&inQ){inQ=false;}else if(ch===','&&!inQ){cells.push(cur.trim());cur="";}else cur+=ch;}cells.push(cur.trim());return cells;}
+    var db=getDB();var cs=cols(db);
+    var hdrs=prow(lines[0]).map(function(h){return h.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");});
     var imported=lines.slice(1).map(function(line){
-      var cells=prow(line);
-      // FIX 2: assign a stable _rowId to every imported row
-      var row={_rowId:genId()};
-      cs.forEach(function(c){ row[c.key]=""; });
-      hdrs.forEach(function(h,i){ var m=cs.find(function(c){ return c.key===h||c.label.toLowerCase().replace(/\s+/g,"_")===h; }); if(m) row[m.key]=cells[i]||""; });
+      var cells=prow(line);var row={_rowId:genId()};
+      cs.forEach(function(c){row[c.key]="";});
+      hdrs.forEach(function(h,i){var m=cs.find(function(c){return c.key===h||c.label.toLowerCase().replace(/\s+/g,"_")===h;});if(m)row[m.key]=cells[i]||"";});
       return row;
     });
-    imported.forEach(function(row){ db.rows.push(row); gPost({action:"upsert",sheet:db.name,row:row,rowIdx:db.rows.length-1}); });
-    // FIX 3: rebuild MVrows so Master View shows imported data immediately
-    buildMVrows();
-    renderTable(); renderList(); showToast("Imported "+imported.length+" row(s).","ok"); e.target.value="";
+    imported.forEach(function(row){db.rows.push(row);gPost({action:"upsert",sheet:db.name,row:row,rowIdx:db.rows.length-1});});
+    buildMVrows();renderTable();renderList();showToast("Imported "+imported.length+" row(s).","ok");e.target.value="";
   };
   reader.readAsText(file);
 }
 
-// ─── CSV EXPORT ───────────────────────────────────────────────────────────────
-function exportCSV(){
-  var cs=isMV?MVcols():cols(getDB());
-  var data=isMV?MVrows:(getDB().rows||[]);
-  var lines=[cs.map(function(c){ return '"'+c.label+'"'; }).join(",")].concat(
-    data.map(function(r){ return cs.map(function(c){ return '"'+String(r[c.key]||"").replace(/"/g,'""')+'"'; }).join(","); })
-  );
-  var blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=isMV?"master-list.csv":(getDB().name+".csv"); a.click();
-  showToast("CSV exported.","ok");
-}
-
 // ─── UTILS ───────────────────────────────────────────────────────────────────
-function closeModal(id){ document.getElementById(id).classList.remove("open"); }
-function strColor(s){ var c=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"]; var h=0; for(var i=0;i<s.length;i++) h=s.charCodeAt(i)+((h<<5)-h); return c[Math.abs(h)%c.length]; }
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+function strColor(s){var c=["#6366f1","#10b981","#0ea5e9","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"];var h=0;for(var i=0;i<s.length;i++)h=s.charCodeAt(i)+((h<<5)-h);return c[Math.abs(h)%c.length];}
 </script>
 </body>
 </html>
